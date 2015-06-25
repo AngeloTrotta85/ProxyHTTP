@@ -55,6 +55,8 @@ void usage(char* progName)
       "-h         Print this help" << endl <<
       "-i         Interfaces to exclude (separated by ,)" << endl <<
       "-l         Log file path-name" << endl <<
+      "[-r]       Random choice of out-interface" << endl <<
+      "[-u]       Execute updating on unused interfaces ['yes(default)' or 'no']" << endl <<
       "-p         The port number to listen" << endl;
 }
 
@@ -63,6 +65,8 @@ int main(int argc,char* argv[]) {
 	std::list<std::string> interface2exclude;
 	int listening_port = 0;
 	int char_opt;
+	bool statupdate = true;
+	bool randomC = false;
 	ClientManager cm;
 
 	/****************************************************************/
@@ -70,7 +74,7 @@ int main(int argc,char* argv[]) {
 	/****************************************************************/
 	opterr = 0;
 
-	while ((char_opt = getopt (argc, argv, "hp:i:l:")) != -1) {
+	while ((char_opt = getopt (argc, argv, "rhp:i:l:b:u:")) != -1) {
 		char tmpstr[64];
 		char *pch;
 
@@ -79,8 +83,25 @@ int main(int argc,char* argv[]) {
 	    	usage(argv[0]);
 	    	return EXIT_SUCCESS;
 
+		case 'r':
+			randomC = true;
+			break;
+
 		case 'p':
 			listening_port = atoi(optarg);
+			break;
+
+		case 'u':
+			if (!strncmp(optarg, "yes", 3)) {
+				statupdate = true;
+			}
+			else if (!strncmp(optarg, "no", 2)) {
+				statupdate = false;
+			}
+			else {
+				usage(argv[0]);
+				return EXIT_FAILURE;
+			}
 			break;
 
 		case 'i':
@@ -98,7 +119,7 @@ int main(int argc,char* argv[]) {
 			break;
 
 		case '?':
-			if ((optopt == 'p') || (optopt == 'i') || (optopt == 'l')) {
+			if ((optopt == 'p') || (optopt == 'i') || (optopt == 'l') || (optopt == 'u')) {
 				fprintf(stderr, "Option -%c requires an argument.\n", optopt);
 			}
 			else if (isprint (optopt)) {
@@ -169,6 +190,8 @@ int main(int argc,char* argv[]) {
 	StatManager::getInstance().setFileName(log_file);
 
 	// init the interfaces
+	InterfacesManager::getInstance().setUpdateFlag(statupdate);
+	InterfacesManager::getInstance().setRandomChoice(randomC);
 	InterfacesManager::getInstance().checkInterfaces(interface2exclude);
 	//InterfacesManager::getInstance().printInterfaces();
 	time(&lastInterfaceUpdate);

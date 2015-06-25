@@ -230,13 +230,21 @@ void InterfacesManager::updateInterfaceStats (struct sockaddr_in *if_used, int p
 	}
 }
 
+void InterfacesManager::setUpdateFlag(bool updateFlag) {
+	flag_update = updateFlag;
+}
+
+void InterfacesManager::setRandomChoice(bool r) {
+	random_chioce = r;
+}
+
 void InterfacesManager::chooseIF(struct sockaddr_in &if_to_use, std::list<struct sockaddr_in> &if_to_update) {
 
 	if_to_use.sin_family=AF_INET;
 	if_to_use.sin_port=htons(0);
 
 	// random choice
-	if (false) {
+	if (random_chioce) {
 		if_to_use.sin_addr.s_addr=interfaces_map [rand() % interfaces_map_vector_size].addr_info;
 	}
 	else {
@@ -379,22 +387,25 @@ void InterfacesManager::chooseIF(struct sockaddr_in &if_to_use, std::list<struct
 
 	// check il some of the other devices should be updated
 	if_to_update.clear();
+	
+	if (flag_update) {
 
-	struct timeval timeNOW;
-	gettimeofday(&timeNOW, NULL);
+		struct timeval timeNOW;
+		gettimeofday(&timeNOW, NULL);
 
-	for (int if_idx = 0; if_idx < (int)interfaces_map_vector_size; if_idx++) {
-		long int timeDIFF = (timevaldiff_usec(&interfaces_map[if_idx].stats[BLOCK_TOTAL_DIMENSION - 1].timestamp, &timeNOW)) / 1000000.0;
-		//if ((interfaces_map[if_idx].stats[BLOCK_TOTAL_DIMENSION - 1].timestamp == 0) || (timeDIFF >= 10)) {
-		if (timeDIFF >= 10) {		//TODO togliere il 10...
-			// controllo che non sia quello scelto per inviare il pacchetto su...
-			if (if_to_use.sin_addr.s_addr != interfaces_map [if_idx].addr_info) {
-				struct sockaddr_in toADD;
-				toADD.sin_family=AF_INET;
-				toADD.sin_port=htons(0);
-				toADD.sin_addr.s_addr = interfaces_map [if_idx].addr_info;
+		for (int if_idx = 0; if_idx < (int)interfaces_map_vector_size; if_idx++) {
+			long int timeDIFF = (timevaldiff_usec(&interfaces_map[if_idx].stats[BLOCK_TOTAL_DIMENSION - 1].timestamp, &timeNOW)) / 1000000.0;
+			//if ((interfaces_map[if_idx].stats[BLOCK_TOTAL_DIMENSION - 1].timestamp == 0) || (timeDIFF >= 10)) {
+			if (timeDIFF >= 10) {		//TODO togliere il 10...
+				// controllo che non sia quello scelto per inviare il pacchetto su...
+				if (if_to_use.sin_addr.s_addr != interfaces_map [if_idx].addr_info) {
+					struct sockaddr_in toADD;
+					toADD.sin_family=AF_INET;
+					toADD.sin_port=htons(0);
+					toADD.sin_addr.s_addr = interfaces_map [if_idx].addr_info;
 
-				if_to_update.push_back(toADD);
+					if_to_update.push_back(toADD);
+				}
 			}
 		}
 	}

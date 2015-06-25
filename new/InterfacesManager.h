@@ -72,6 +72,8 @@ private:
 	InterfacesManager() {
 		interfaces_map = NULL;
 		interfaces_map_vector_size = 0;
+		
+		flag_update = true;
 
 		sem_estimator = sem_open("proxy_estimator_semaphore", O_CREAT|O_EXCL, 0777, 1);
 		sem_unlink("proxy_estimator_semaphore");
@@ -88,6 +90,9 @@ public:
 	}
 
 	void printInterfaces(void);
+	
+	void setUpdateFlag(bool updateFlag);
+	void setRandomChoice(bool r);
 
 	void checkInterfaces(std::list<std::string> &if2exclude);
 	void freeMemory(void);
@@ -103,6 +108,9 @@ private:
 	unsigned int interfaces_map_vector_size;
 
 	sem_t *sem_estimator;
+	
+	bool flag_update;
+	bool random_chioce;
 };
 
 #endif /* INTERFACESMANAGER_H_ */
