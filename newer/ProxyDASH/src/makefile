@@ -42,21 +42,21 @@ LIBS := -lpthread
 CPP_SRCS += \
 ./ClientManager.cpp \
 ./InterfacesManager.cpp \
-./Proxy.cpp \
+./ProxyDASH.cpp \
 ./RequestManager.cpp \
 ./StatManager.cpp 
 
 OBJS += \
 ./build/ClientManager.o \
 ./build/InterfacesManager.o \
-./build/Proxy.o \
+./build/ProxyDASH.o \
 ./build/RequestManager.o \
 ./build/StatManager.o 
 
 CPP_DEPS += \
 ./build/ClientManager.d \
 ./build/InterfacesManager.d \
-./build/Proxy.d \
+./build/ProxyDASH.d \
 ./build/RequestManager.d \
 ./build/StatManager.d 
 
@@ -71,13 +71,13 @@ CPP_DEPS += \
 	
 	
 # All Target
-all: directories Proxy
+all: directories ProxyDASH
 
 directories:
 	mkdir -p build
 
 # Tool invocations
-Proxy: $(OBJS) $(USER_OBJS)
+ProxyDASH: $(OBJS) $(USER_OBJS)
 	@echo 'Building target: $@'
 	@echo 'Invoking: Cross G++ Linker'
 	g++  -o "Proxy" $(OBJS) $(USER_OBJS) $(LIBS)
@@ -86,6 +86,6 @@ Proxy: $(OBJS) $(USER_OBJS)
 
 # Other Targets
 clean:
-	-$(RM) $(C++_DEPS)$(OBJS)$(C_DEPS)$(CC_DEPS)$(CPP_DEPS)$(EXECUTABLES)$(CXX_DEPS)$(C_UPPER_DEPS) Proxy
+	-$(RM) $(C++_DEPS)$(OBJS)$(C_DEPS)$(CC_DEPS)$(CPP_DEPS)$(EXECUTABLES)$(CXX_DEPS)$(C_UPPER_DEPS) ProxyDASH
 	rm -rf build
 	-@echo ' '
