@@ -225,6 +225,8 @@ bool ClientManager::sendGETtoDest(struct sockaddr_in *if_to_bind) {
 	host_addr.sin_port = htons(rm.getServerPort());
 	host_addr.sin_family=AF_INET;
 	host_addr.sin_addr.s_addr = rm.getServerAddr();
+	
+	debug_high("Start sending the GET to the server using\n");
 
 	sockfd_VideoServer = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP);
 	if (sockfd_VideoServer < 0) {
