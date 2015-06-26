@@ -246,6 +246,7 @@ void InterfacesManager::chooseIF(struct sockaddr_in &if_to_use, std::list<struct
 	// random choice
 	if (random_chioce) {
 		if_to_use.sin_addr.s_addr=interfaces_map [rand() % interfaces_map_vector_size].addr_info;
+		debug_medium("Choosing the interface randomly. Choose: %s\n", inet_ntoa(if_to_use.sin_addr));
 	}
 	else {
 		int block_size = BLOCK_SIZE;
