@@ -266,7 +266,10 @@ bool ClientManager::sendGETtoDest(struct sockaddr_in *if_to_bind) {
 
 	//start STATS
 	time(&StatManager::getInstance().actual_stats.start_request_time);
-	gettimeofday(&StatManager::getInstance().actual_stats.start_request_timeval, NULL);
+	gettimeofday(&(StatManager::getInstance().actual_stats.start_request_timeval), NULL);
+
+	printf("CIAOCIAO - time sec: %ld, time usec: %ld\n", StatManager::getInstance().actual_stats.start_request_timeval.tv_sec,
+			StatManager::getInstance().actual_stats.start_request_timeval.tv_usec);
 
 	return true;
 }
