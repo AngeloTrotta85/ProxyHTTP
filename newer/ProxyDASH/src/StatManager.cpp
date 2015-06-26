@@ -89,12 +89,19 @@ void StatManager::makeStat() {
 			//		buffer_s, frag->start_request_timeval.tv_usec,
 			//		buffer_e, frag->end_request_timeval.tv_usec,
 			//		useconds, throughput);
-			int nw = snprintf(buff_stat, sizeof(buff_stat), "%s\t%d\t%d\t%d\t%d\t%s\t%d\t%ll\t%ll\t%ll\t%f\t%d\n",
-							actual_stats.video_name, actual_stats.bps, actual_stats.reply_ok ? 1 : 0,
-									actual_stats.frag_seconds, actual_stats.frag_number,
-							inet_ntoa(actual_stats.choosed_interface), actual_stats.frag_bytesize,
-							useconds_st, useconds_et,
-							useconds, throughput, buff_size);
+			int nw = snprintf(buff_stat, sizeof(buff_stat), "%s\t%d\t%d\t%d\t%d\t%s\t%d\t%lld\t%lld\t%lld\t%f\t%d\n",
+							actual_stats.video_name,
+							actual_stats.bps,
+							actual_stats.reply_ok ? 1 : 0,
+							actual_stats.frag_seconds,
+							actual_stats.frag_number,
+							inet_ntoa(actual_stats.choosed_interface),
+							actual_stats.frag_bytesize,
+							useconds_st,
+							useconds_et,
+							useconds,
+							throughput,
+							buff_size);
 
 			fwrite(buff_stat, 1, nw, fileExp);
 
