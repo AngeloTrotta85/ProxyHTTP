@@ -164,8 +164,8 @@ bool RequestManager::load_req(char *str_req, int size_str) {
 		}
 
 		debug_low("HOST: %s - ", host_name);
-		debug_low(",PORT: %d - ", server_port);
-		debug_low(",PATH: %s\n", path_name);
+		debug_low("PORT: %d - ", server_port);
+		debug_low("PATH: %s\n", path_name);
 
 		switch(mpeg_dash){
 		case MPEGDASH_FRAME:
