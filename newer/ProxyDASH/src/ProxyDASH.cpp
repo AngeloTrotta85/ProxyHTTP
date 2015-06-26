@@ -69,6 +69,12 @@ int main(int argc,char* argv[]) {
 	bool randomC = false;
 	ClientManager cm;
 
+	struct timeval pippo;
+
+	gettimeofday(&pippo, NULL);
+
+	printf("Time sec %ld - time usec %ld\n", pippo.tv_sec, pippo.tv_usec);
+
 	/****************************************************************/
 	/* CHECK PARAMETERS                                             */
 	/****************************************************************/
