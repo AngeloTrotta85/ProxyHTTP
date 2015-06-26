@@ -133,17 +133,23 @@ int main(int argc, char* argv[]) {
 
 	for (frag_list_it = frag_list.begin(); frag_list_it != frag_list.end(); frag_list_it++) {
 		fragment_in_t *act_frag = &(*frag_list_it);
-		int ii = 0;
+		//int ii = 0;
 		list<fragment_in_t *> duplicate_list;
 
 		list<fragment_in_t>::iterator frag_list_it_dup = frag_list_it;
 
+		duplicate_list.push_back(&(*frag_list_it_dup));
 		frag_list_it_dup++;
-		while((*frag_list_it_dup).frag_number == act_frag->frag_number) {
+		while ((frag_list_it_dup != frag_list.end()) && ((*frag_list_it_dup).frag_number == act_frag->frag_number)) {
 			duplicate_list.push_back(&(*frag_list_it_dup));
+
+			frag_list_it_dup++;
+			frag_list_it++;
 		}
 
-		if(!duplicate_list.empty()) {
+		printf ("Trovato %d con %d occorrenze\n", act_frag->frag_number, duplicate_list.size());
+
+		if(duplicate_list.size() > 1) {
 			fragment_in_t * maxBPS = NULL;
 			fragment_in_t * minTime = NULL;
 
@@ -173,7 +179,6 @@ int main(int argc, char* argv[]) {
 		else {
 			frag_list_noDUP.push_back(*act_frag);
 		}
-
 	}
 
 	//for (frag_list_it = frag_list.begin(); frag_list_it != frag_list.end(); frag_list_it++) {
