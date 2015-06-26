@@ -80,7 +80,7 @@ directories:
 ProxyDASH: $(OBJS) $(USER_OBJS)
 	@echo 'Building target: $@'
 	@echo 'Invoking: Cross G++ Linker'
-	g++  -o "Proxy" $(OBJS) $(USER_OBJS) $(LIBS)
+	g++  -o "ProxyDASH" $(OBJS) $(USER_OBJS) $(LIBS)
 	@echo 'Finished building target: $@'
 	@echo ' '
 
