@@ -206,8 +206,6 @@ bool ClientManager::manageRequest(void) {
 
 	// Sending the REQUEST to destination and managing the transfer
 	if (sendGETtoDest(if_to_use_act)) {
-		printf("CIAOCIAO222 - time sec: %ld, time usec: %ld\n", StatManager::getInstance().actual_stats.start_request_timeval.tv_sec,
-					StatManager::getInstance().actual_stats.start_request_timeval.tv_usec);
 		manageTransferFromDestToClient(if_to_use_act);
 
 		close (sockfd_VideoServer);

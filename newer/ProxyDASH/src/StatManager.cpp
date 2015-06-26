@@ -7,7 +7,7 @@
 
 #include "StatManager.h"
 
-static long int timevaldiff_usec(struct timeval *start, struct timeval *end) {
+static long long timevaldiff_usec(struct timeval *start, struct timeval *end) {
 	return (end->tv_sec * 1000000 + end->tv_usec) - (start->tv_sec * 1000000 + start->tv_usec);
 }
 
@@ -55,13 +55,13 @@ void StatManager::makeStat() {
 			printf("CIAOCIAO - time sec: %ld, time usec: %ld\n", actual_stats.start_request_timeval.tv_sec,
 						actual_stats.start_request_timeval.tv_usec);
 
-			long int useconds_st = actual_stats.start_request_timeval.tv_sec * 1000000.0 + actual_stats.start_request_timeval.tv_usec;
-			long int useconds_et = actual_stats.end_request_timeval.tv_sec * 1000000.0 + actual_stats.end_request_timeval.tv_usec;
+			long long useconds_st = actual_stats.start_request_timeval.tv_sec * 1000000.0 + actual_stats.start_request_timeval.tv_usec;
+			long long useconds_et = actual_stats.end_request_timeval.tv_sec * 1000000.0 + actual_stats.end_request_timeval.tv_usec;
 
 			//long int useconds = (	(frag->end_request_timeval.tv_sec * 1000000.0 + frag->end_request_timeval.tv_usec)
 			//		  	  	  	  -	(frag->start_request_timeval.tv_sec * 1000000.0 + frag->start_request_timeval.tv_usec));
 
-			long int useconds = useconds_et - useconds_st;
+			long long useconds = useconds_et - useconds_st;
 
 			//double millisec = useconds / 1000.0;
 
@@ -71,7 +71,7 @@ void StatManager::makeStat() {
 			struct timeval t1;
 			gettimeofday(&t1, NULL);
 
-			long int diff = timevaldiff_usec(t0, &t1);
+			long long diff = timevaldiff_usec(t0, &t1);
 			double diff_sec = diff / 1000000.0;
 			//int buff_size = (frag->frag_seconds * frag->frag_number) - ceil(diff_sec);
 			buff_size = 0;
