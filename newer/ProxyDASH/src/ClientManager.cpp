@@ -206,6 +206,8 @@ bool ClientManager::manageRequest(void) {
 
 	// Sending the REQUEST to destination and managing the transfer
 	if (sendGETtoDest(if_to_use_act)) {
+		printf("CIAOCIAO222 - time sec: %ld, time usec: %ld\n", StatManager::getInstance().actual_stats.start_request_timeval.tv_sec,
+					StatManager::getInstance().actual_stats.start_request_timeval.tv_usec);
 		manageTransferFromDestToClient(if_to_use_act);
 
 		close (sockfd_VideoServer);
@@ -267,9 +269,6 @@ bool ClientManager::sendGETtoDest(struct sockaddr_in *if_to_bind) {
 	//start STATS
 	time(&StatManager::getInstance().actual_stats.start_request_time);
 	gettimeofday(&(StatManager::getInstance().actual_stats.start_request_timeval), NULL);
-
-	printf("CIAOCIAO - time sec: %ld, time usec: %ld\n", StatManager::getInstance().actual_stats.start_request_timeval.tv_sec,
-			StatManager::getInstance().actual_stats.start_request_timeval.tv_usec);
 
 	return true;
 }

@@ -52,6 +52,9 @@ void StatManager::makeStat() {
 
 			//double seconds = difftime(frag->end_request_time, frag->start_request_time);
 
+			printf("CIAOCIAO - time sec: %ld, time usec: %ld\n", actual_stats.start_request_timeval.tv_sec,
+						actual_stats.start_request_timeval.tv_usec);
+
 			long int useconds_st = actual_stats.start_request_timeval.tv_sec * 1000000.0 + actual_stats.start_request_timeval.tv_usec;
 			long int useconds_et = actual_stats.end_request_timeval.tv_sec * 1000000.0 + actual_stats.end_request_timeval.tv_usec;
 
