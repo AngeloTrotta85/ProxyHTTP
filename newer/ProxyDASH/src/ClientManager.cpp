@@ -405,7 +405,7 @@ void ClientManager::forkAndUpdateStats(struct sockaddr_in *addr_in) {
 
 			// Sending the REQUEST to destination and managing the transfer
 			if (sendGETtoDest(addr_in)) {
-				manageTransferFromDestToClient(addr_in);
+				manageTransferOnStatUpdate(addr_in);
 
 				close (sockfd_VideoServer);
 				sockfd_VideoServer = -1;
