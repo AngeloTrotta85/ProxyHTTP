@@ -108,6 +108,10 @@ void InterfacesManager::checkInterfaces(std::list<std::string> &if2exclude) {
 			tmp_glob_var[i].addr_info = new_vector[i].addr_info;
 			strncpy(tmp_glob_var[i].name, new_vector[i].name, sizeof(tmp_glob_var[i].name));
 			tmp_glob_var[i].statUpdate_sem = NULL;
+
+			for (int j = 0; j < BLOCK_TOTAL_DIMENSION; j++) {
+				gettimeofday(&tmp_glob_var[i].stats[j].timestamp, NULL);
+			}
 		}
 
 		if (interfaces_map != NULL) {
@@ -419,13 +423,15 @@ void InterfacesManager::chooseIF(struct sockaddr_in &if_to_use, std::list<struct
 		for (int if_idx = 0; if_idx < (int)interfaces_map_vector_size; if_idx++) {
 			long long timeDIFF = (timevaldiff_usec(&interfaces_map[if_idx].stats[BLOCK_TOTAL_DIMENSION - 1].timestamp, &timeNOW)) / 1000000.0;
 
+
+			// TODO remove these prints
 			struct in_addr tt;
 			tt.s_addr = interfaces_map[if_idx].addr_info;
 			debug_medium("IF: %s - Time to last update: %lld usec\n", inet_ntoa(tt), timeDIFF);
 
 			if (	(timeDIFF >= timer_update) ||
-					( 	(interfaces_map[if_idx].stats[BLOCK_TOTAL_DIMENSION - 1].timestamp.tv_sec == 0) &&
-							(interfaces_map[if_idx].stats[BLOCK_TOTAL_DIMENSION - 1].timestamp.tv_usec == 0) ) ){
+					( 	(interfaces_map[if_idx].stats[BLOCK_TOTAL_DIMENSION - 1].timestamp.tv_sec <= 0) &&
+							(interfaces_map[if_idx].stats[BLOCK_TOTAL_DIMENSION - 1].timestamp.tv_usec <= 0) ) ){
 
 				// controllo che non sia quello scelto per inviare il pacchetto su...
 				if (if_to_use.sin_addr.s_addr != interfaces_map [if_idx].addr_info) {

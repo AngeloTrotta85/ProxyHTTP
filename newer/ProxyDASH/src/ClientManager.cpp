@@ -401,6 +401,10 @@ void ClientManager::forkAndUpdateStats(struct sockaddr_in *addr_in) {
 			// set random seed
 			srand(getpid());
 
+			debug_medium("%d - Sono un nuovo processo che deve aggiornare l'interfaccia: %s\n", getpid(), inet_ntoa(addr_in->sin_addr));
+
+			/*
+
 			// Sending the REQUEST to destination and managing the transfer
 			if (sendGETtoDest(addr_in)) {
 				manageTransferFromDestToClient(addr_in);
@@ -412,6 +416,8 @@ void ClientManager::forkAndUpdateStats(struct sockaddr_in *addr_in) {
 			else {
 				debug_low("Error sending request to the destination on STATS UPDATE\n");
 			}
+
+			*/
 
 			// free the Interface and Stat memory
 			InterfacesManager::getInstance().freeMemory();
