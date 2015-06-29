@@ -73,7 +73,7 @@ private:
 	InterfacesManager() {
 		interfaces_map = NULL;
 		interfaces_map_vector_size = 0;
-		timer_update = 10;
+		timer_update = TIME_STAT_UPDATE;
 		
 		random_chioce = false;
 		flag_update = true;
@@ -101,7 +101,7 @@ public:
 	void checkInterfaces(std::list<std::string> &if2exclude);
 	void freeMemory(void);
 
-	void updateInterfaceStats (struct sockaddr_in *if_used, int pktSize, long int time_usec);
+	void updateInterfaceStats (struct sockaddr_in *if_used, int pktSize, long long time_usec);
 
 	void chooseIF(struct sockaddr_in &if_to_use, std::list<struct sockaddr_in> &if_to_update);
 

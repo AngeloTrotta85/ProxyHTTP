@@ -67,7 +67,7 @@ int main(int argc,char* argv[]) {
 	std::list<std::string> interface2exclude;
 	int listening_port = 0;
 	int char_opt;
-	int timeUpdate = 10;
+	int timeUpdate = TIME_STAT_UPDATE;
 	int byteUpdate = BLOCK_SIZE_STATS_BYTE;
 	bool statupdate = true;
 	bool randomC = false;
