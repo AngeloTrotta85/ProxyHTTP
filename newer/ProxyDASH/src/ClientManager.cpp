@@ -15,14 +15,17 @@ static long int timevaldiff_usec(struct timeval *start, struct timeval *end) {
 }
 
 ClientManager::ClientManager() {
-	// TODO Auto-generated constructor stub
 	new_sockfd_VideoClient = -1;
 	sockfd_VideoClient = -1;
 	sockfd_VideoServer = -1;
+
+	byte_update = BLOCK_SIZE_STATS_BYTE;
 }
 
-ClientManager::~ClientManager() {
-	// TODO Auto-generated destructor stub
+ClientManager::~ClientManager() { }
+
+void ClientManager::setByteStat(int byteS) {
+	byte_update = byteS;
 }
 
 bool ClientManager::startListeningForClient(int port) {
@@ -90,9 +93,6 @@ int ClientManager::forkAndManageClient(void) {
 			if (!manageRequest()) {
 				perror("Error managing request from client");
 			}
-			//else {
-			//	// TODO
-			//}
 		}
 		else {
 			perror("Error getting request from client");
@@ -290,7 +290,7 @@ void ClientManager::manageTransferOnStatUpdate(struct sockaddr_in *if_used) {
 			n_tot_recv += n_recv;
 			block_stat_recv += n_recv;
 
-			if (block_stat_recv > BLOCK_SIZE_STATS_BYTE) {
+			if (block_stat_recv > byte_update) {
 				gettimeofday(&time_en, NULL);
 
 				InterfacesManager::getInstance().updateInterfaceStats(if_used, block_stat_recv, timevaldiff_usec(&time_st, &time_en));
@@ -309,7 +309,7 @@ void ClientManager::manageTransferOnStatUpdate(struct sockaddr_in *if_used) {
 
 	} while (n_recv > 0);
 
-	if (n_tot_recv == block_stat_recv) {	// never made stats
+	if (n_tot_recv == block_stat_recv) {	// never made stats (packet size less then "byte_update")
 		gettimeofday(&time_en, NULL);
 		InterfacesManager::getInstance().updateInterfaceStats(if_used, block_stat_recv, timevaldiff_usec(&time_st, &time_en));
 	}
@@ -347,7 +347,7 @@ void ClientManager::manageTransferFromDestToClient(struct sockaddr_in *if_used) 
 
 				StatManager::getInstance().actual_stats.reply_ok = true;
 
-				if (block_stat_recv >= BLOCK_SIZE_STATS_BYTE) {
+				if (block_stat_recv >= byte_update) {
 					gettimeofday(&time_en, NULL);
 
 					InterfacesManager::getInstance().updateInterfaceStats(if_used, block_stat_recv, timevaldiff_usec(&time_st, &time_en));
@@ -374,7 +374,7 @@ void ClientManager::manageTransferFromDestToClient(struct sockaddr_in *if_used) 
 
 	debug_high("\n");
 
-	if (n_tot_recv == block_stat_recv) {	// never made stats
+	if (n_tot_recv == block_stat_recv) {	// never made stats (packet size less then "byte_update")
 		gettimeofday(&time_en, NULL);
 		InterfacesManager::getInstance().updateInterfaceStats(if_used, block_stat_recv, timevaldiff_usec(&time_st, &time_en));
 	}

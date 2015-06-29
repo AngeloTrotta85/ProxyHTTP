@@ -56,6 +56,8 @@ void usage(char* progName)
       "-i         Interfaces to exclude (separated by ,)" << endl <<
       "-l         Log file path-name" << endl <<
       "[-r]       Random choice of out-interface" << endl <<
+      "[-b]       Byte to update interfaces statistics (default 250000 byte)" << endl <<
+      "[-t]       Timeout to update unused interfaces in seconds (default 10s)" << endl <<
       "[-u]       Execute updating on unused interfaces ['yes(default)' or 'no']" << endl <<
       "-p         The port number to listen" << endl;
 }
@@ -65,6 +67,8 @@ int main(int argc,char* argv[]) {
 	std::list<std::string> interface2exclude;
 	int listening_port = 0;
 	int char_opt;
+	int timeUpdate = 10;
+	int byteUpdate = BLOCK_SIZE_STATS_BYTE;
 	bool statupdate = true;
 	bool randomC = false;
 	ClientManager cm;
@@ -74,14 +78,14 @@ int main(int argc,char* argv[]) {
 	/****************************************************************/
 	opterr = 0;
 
-	while ((char_opt = getopt (argc, argv, "rhp:i:l:b:u:")) != -1) {
+	while ((char_opt = getopt (argc, argv, "rhp:i:l:b:u:t:")) != -1) {
 		char tmpstr[64];
 		char *pch;
 
 		switch (char_opt) {
-	      case 'h':
-	    	usage(argv[0]);
-	    	return EXIT_SUCCESS;
+		case 'h':
+			usage(argv[0]);
+			return EXIT_SUCCESS;
 
 		case 'r':
 			randomC = true;
@@ -89,6 +93,14 @@ int main(int argc,char* argv[]) {
 
 		case 'p':
 			listening_port = atoi(optarg);
+			break;
+
+		case 'b':
+			byteUpdate = atoi(optarg);
+			break;
+
+		case 't':
+			timeUpdate = atoi(optarg);
 			break;
 
 		case 'u':
@@ -119,7 +131,7 @@ int main(int argc,char* argv[]) {
 			break;
 
 		case '?':
-			if ((optopt == 'p') || (optopt == 'i') || (optopt == 'l') || (optopt == 'u')) {
+			if ((optopt == 'p') || (optopt == 'i') || (optopt == 'l') || (optopt == 'u') || (optopt == 't') || (optopt == 'b')) {
 				fprintf(stderr, "Option -%c requires an argument.\n", optopt);
 			}
 			else if (isprint (optopt)) {
@@ -140,16 +152,6 @@ int main(int argc,char* argv[]) {
 		for (int idx = optind; idx < argc; idx++) {
 			fprintf (stderr, "Non-option argument %s\n", argv[idx]);
 		}
-		usage(argv[0]);
-		return EXIT_FAILURE;
-	}
-	if (log_file == NULL) {
-		fprintf (stderr, "Log-file needed (par `-l')\n");
-		usage(argv[0]);
-		return EXIT_FAILURE;
-	}
-	if (listening_port == 0) {
-		fprintf (stderr, "Listening port needed (par `-p')\n");
 		usage(argv[0]);
 		return EXIT_FAILURE;
 	}
@@ -192,9 +194,13 @@ int main(int argc,char* argv[]) {
 	// init the interfaces
 	InterfacesManager::getInstance().setUpdateFlag(statupdate);
 	InterfacesManager::getInstance().setRandomChoice(randomC);
+	InterfacesManager::getInstance().setTimerUpdate(timeUpdate);
 	InterfacesManager::getInstance().checkInterfaces(interface2exclude);
 	//InterfacesManager::getInstance().printInterfaces();
 	time(&lastInterfaceUpdate);
+
+	// init the ClientManager
+	cm.setByteStat(byteUpdate);
 
 	//listening on port
 	if (cm.startListeningForClient(listening_port)) {

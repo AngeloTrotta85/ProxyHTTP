@@ -73,6 +73,7 @@ private:
 	InterfacesManager() {
 		interfaces_map = NULL;
 		interfaces_map_vector_size = 0;
+		timer_update = 10;
 		
 		random_chioce = false;
 		flag_update = true;
@@ -95,6 +96,7 @@ public:
 	
 	void setUpdateFlag(bool updateFlag);
 	void setRandomChoice(bool r);
+	void setTimerUpdate(int timer);
 
 	void checkInterfaces(std::list<std::string> &if2exclude);
 	void freeMemory(void);
@@ -113,6 +115,7 @@ private:
 	
 	bool flag_update;
 	bool random_chioce;
+	int timer_update;
 };
 
 #endif /* INTERFACESMANAGER_H_ */

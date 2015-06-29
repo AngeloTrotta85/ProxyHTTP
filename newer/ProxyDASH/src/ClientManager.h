@@ -44,6 +44,8 @@ public:
 
 	int forkAndManageClient(void);
 
+	void setByteStat(int byteS);
+
 private:
 
 	bool getRequestFromClient(void);
@@ -58,6 +60,8 @@ private:
 	int new_sockfd_VideoClient;
 
 	int sockfd_VideoServer;
+
+	int byte_update;
 
 	char buffer[16384];
 

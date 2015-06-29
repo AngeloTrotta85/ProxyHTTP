@@ -238,6 +238,10 @@ void InterfacesManager::setRandomChoice(bool r) {
 	random_chioce = r;
 }
 
+void InterfacesManager::setTimerUpdate(int timer) {
+	timer_update = timer;
+}
+
 void InterfacesManager::chooseIF(struct sockaddr_in &if_to_use, std::list<struct sockaddr_in> &if_to_update) {
 
 	if_to_use.sin_family=AF_INET;
@@ -415,7 +419,7 @@ void InterfacesManager::chooseIF(struct sockaddr_in &if_to_use, std::list<struct
 		for (int if_idx = 0; if_idx < (int)interfaces_map_vector_size; if_idx++) {
 			long int timeDIFF = (timevaldiff_usec(&interfaces_map[if_idx].stats[BLOCK_TOTAL_DIMENSION - 1].timestamp, &timeNOW)) / 1000000.0;
 			//if ((interfaces_map[if_idx].stats[BLOCK_TOTAL_DIMENSION - 1].timestamp == 0) || (timeDIFF >= 10)) {
-			if (timeDIFF >= 10) {		//TODO togliere il 10...
+			if (timeDIFF >= timer_update) {
 				// controllo che non sia quello scelto per inviare il pacchetto su...
 				if (if_to_use.sin_addr.s_addr != interfaces_map [if_idx].addr_info) {
 					struct sockaddr_in toADD;

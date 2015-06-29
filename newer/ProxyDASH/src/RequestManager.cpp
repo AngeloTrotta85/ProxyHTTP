@@ -163,6 +163,7 @@ bool RequestManager::load_req(char *str_req, int size_str) {
 			debug_high("%s -> %s\n", it->first.c_str(), it->second.c_str());
 		}
 
+		debug_low("\n");
 		debug_low("HOST: %s - ", host_name);
 		debug_low("PORT: %d - ", server_port);
 		debug_low("PATH: %s\n", path_name);
