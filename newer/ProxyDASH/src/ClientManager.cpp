@@ -248,8 +248,8 @@ bool ClientManager::sendGETtoDest(struct sockaddr_in *if_to_bind) {
 				return false;
 			}
 			else {
-				debug_medium("Sending the original req to the destination: \n******************************\n%s\n******************************\n",
-						rm.getCopyOfGET());
+				//debug_high("Sending the original req to the destination: \n******************************\n%s\n******************************\n",
+				//		rm.getCopyOfGET());
 
 				int n_send = send(sockfd_VideoServer, rm.getCopyOfGET(), strlen(rm.getCopyOfGET()), 0);
 				if (n_send < 0) {
