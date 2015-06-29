@@ -377,13 +377,13 @@ void InterfacesManager::chooseIF(struct sockaddr_in &if_to_use, std::list<struct
 			debug_medium("IF: %s - ", inet_ntoa(if_thr_vector[if_idx].addr_info));
 			for (int i = 0; i < (int)if_thr_vector[if_idx].block_vector.size(); i++) {
 				//printf ("%d ", glob_var[idx_if][vec_type][i]);
-				debug_medium ("%lf.2[%lf.2] ", if_thr_vector[if_idx].block_vector[i].mean,  if_thr_vector[if_idx].block_vector[i].standard_dev );
+				debug_medium ("%.2lf[%.2lf] ", if_thr_vector[if_idx].block_vector[i].mean,  if_thr_vector[if_idx].block_vector[i].standard_dev );
 			}
-			debug_medium ("- P_std: %lf.2 - P_mean: %lf.2 - Filled: %d\n",
+			/*debug_medium ("- P_std: %lf.2 - P_mean: %lf.2 - Filled: %d\n",
 					if_thr_vector[if_idx].p_standardDev,
 					if_thr_vector[if_idx].p_mean,
-					if_thr_vector[if_idx].filled_block);
-			debug_medium ("- P [%lf.2; %lf.2] - ExpectedMinThr: %lf.2\n",
+					if_thr_vector[if_idx].filled_block);*/
+			debug_medium ("- P [%.2lf; %.2lf] - ExpectedMinThr: %.2lf\n",
 					if_thr_vector[if_idx].p_mean,
 					if_thr_vector[if_idx].p_standardDev,
 					if_thr_vector[if_idx].expected_thr);

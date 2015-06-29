@@ -169,16 +169,16 @@ bool RequestManager::load_req(char *str_req, int size_str) {
 
 		switch(mpeg_dash){
 		case MPEGDASH_FRAME:
-			debug_medium("GET type MPEGDASH_FRAME\n");
+			debug_medium("GET type: MPEGDASH_FRAME\n");
 			break;
 		case MPEGDASH_MANIFEST:
-			debug_medium("GET type MPEGDASH_MANIFEST\n");
+			debug_medium("GET type: MPEGDASH_MANIFEST\n");
 			break;
 		case MPEGDASH_INIT:
-			debug_medium("GET type MPEGDASH_INIT\n");
+			debug_medium("GET type: MPEGDASH_INIT\n");
 			break;
 		case MPEGDASH_NO_TYPE:
-			debug_medium("GET type NOT MPEG-DASH\n");
+			debug_medium("GET type: NOT MPEG-DASH\n");
 			break;
 		}
 
