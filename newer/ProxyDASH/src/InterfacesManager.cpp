@@ -423,17 +423,18 @@ void InterfacesManager::chooseIF(struct sockaddr_in &if_to_use, std::list<struct
 			tt.s_addr = interfaces_map[if_idx].addr_info;
 			debug_medium("IF: %s - Time to last update: %lld usec\n", inet_ntoa(tt), timeDIFF);
 
-			//if ((interfaces_map[if_idx].stats[BLOCK_TOTAL_DIMENSION - 1].timestamp == 0) || (timeDIFF >= 10)) {
-			if (	(if_to_use.sin_addr.s_addr != interfaces_map [if_idx].addr_info) ||
-					(timeDIFF >= timer_update) ||
+			if (	(timeDIFF >= timer_update) ||
 					( 	(interfaces_map[if_idx].stats[BLOCK_TOTAL_DIMENSION - 1].timestamp.tv_sec == 0) &&
-						(interfaces_map[if_idx].stats[BLOCK_TOTAL_DIMENSION - 1].timestamp.tv_usec == 0) ) ){
+							(interfaces_map[if_idx].stats[BLOCK_TOTAL_DIMENSION - 1].timestamp.tv_usec == 0) ) ){
+
 				// controllo che non sia quello scelto per inviare il pacchetto su...
 				if (if_to_use.sin_addr.s_addr != interfaces_map [if_idx].addr_info) {
 					struct sockaddr_in toADD;
 					toADD.sin_family=AF_INET;
 					toADD.sin_port=htons(0);
 					toADD.sin_addr.s_addr = interfaces_map [if_idx].addr_info;
+
+					debug_medium("IF %d need to be updated\n", inet_ntoa(tt));
 
 					if_to_update.push_back(toADD);
 				}
