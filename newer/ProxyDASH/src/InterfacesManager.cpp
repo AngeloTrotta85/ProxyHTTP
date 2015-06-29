@@ -423,11 +423,9 @@ void InterfacesManager::chooseIF(struct sockaddr_in &if_to_use, std::list<struct
 		for (int if_idx = 0; if_idx < (int)interfaces_map_vector_size; if_idx++) {
 			long long timeDIFF = (timevaldiff_usec(&interfaces_map[if_idx].stats[BLOCK_TOTAL_DIMENSION - 1].timestamp, &timeNOW)) / 1000000.0;
 
-
-			// TODO remove these prints
-			struct in_addr tt;
-			tt.s_addr = interfaces_map[if_idx].addr_info;
-			debug_medium("IF: %s - Time to last update: %lld usec\n", inet_ntoa(tt), timeDIFF);
+			//struct in_addr tt;
+			//tt.s_addr = interfaces_map[if_idx].addr_info;
+			//debug_medium("IF: %s - Time to last update: %lld sec\n", inet_ntoa(tt), timeDIFF);
 
 			if (	(timeDIFF >= timer_update) ||
 					( 	(interfaces_map[if_idx].stats[BLOCK_TOTAL_DIMENSION - 1].timestamp.tv_sec <= 0) &&
@@ -440,7 +438,7 @@ void InterfacesManager::chooseIF(struct sockaddr_in &if_to_use, std::list<struct
 					toADD.sin_port=htons(0);
 					toADD.sin_addr.s_addr = interfaces_map [if_idx].addr_info;
 
-					debug_medium("IF %s need to be updated\n", inet_ntoa(tt));
+					//debug_medium("IF %s need to be updated\n", inet_ntoa(tt));
 
 					if_to_update.push_back(toADD);
 				}

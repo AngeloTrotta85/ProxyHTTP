@@ -248,8 +248,8 @@ bool ClientManager::sendGETtoDest(struct sockaddr_in *if_to_bind) {
 				return false;
 			}
 			else {
-				//debug_high("Sending the original req to the destination: \n******************************\n%s\n******************************\n",
-				//		rm.getCopyOfGET());
+				debug_medium("Sending the original req to the destination: \n******************************\n%s\n******************************\n",
+						rm.getCopyOfGET());
 
 				int n_send = send(sockfd_VideoServer, rm.getCopyOfGET(), strlen(rm.getCopyOfGET()), 0);
 				if (n_send < 0) {
@@ -403,8 +403,6 @@ void ClientManager::forkAndUpdateStats(struct sockaddr_in *addr_in) {
 
 			debug_medium("%d - Sono un nuovo processo che deve aggiornare l'interfaccia: %s\n", getpid(), inet_ntoa(addr_in->sin_addr));
 
-			/*
-
 			// Sending the REQUEST to destination and managing the transfer
 			if (sendGETtoDest(addr_in)) {
 				manageTransferFromDestToClient(addr_in);
@@ -416,8 +414,6 @@ void ClientManager::forkAndUpdateStats(struct sockaddr_in *addr_in) {
 			else {
 				debug_low("Error sending request to the destination on STATS UPDATE\n");
 			}
-
-			*/
 
 			// free the Interface and Stat memory
 			InterfacesManager::getInstance().freeMemory();
