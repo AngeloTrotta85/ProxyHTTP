@@ -48,6 +48,7 @@ public:
 	} mean_var_t;
 
 	typedef struct interface_stat {
+		struct in_addr addr_info;
 		std::vector <mean_var_t> block_vector;
 		int filled_block;
 		double p_standardDev;
@@ -73,6 +74,7 @@ private:
 		interfaces_map = NULL;
 		interfaces_map_vector_size = 0;
 		
+		random_chioce = false;
 		flag_update = true;
 
 		sem_estimator = sem_open("proxy_estimator_semaphore", O_CREAT|O_EXCL, 0777, 1);

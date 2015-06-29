@@ -78,7 +78,7 @@ void StatManager::makeStat() {
 				idx++;
 			}
 
-			debug_medium("STAT - if-sused: %s, %d byte in %lld millisec at %lf KB/s\n",
+			debug_medium("STAT - if: %s, %d byte in %lld millisec at %lf KB/s\n",
 					inet_ntoa(actual_stats.choosed_interface),
 					actual_stats.frag_bytesize,
 					useconds/1000,
