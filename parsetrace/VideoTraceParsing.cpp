@@ -24,9 +24,9 @@ typedef struct fragment_in {
 	int frag_number;
 	int frag_bytesize;
 	struct in_addr choosed_interface;
-	long int start_request_time;
-	long int end_request_time;
-	long int tot_useconds;
+	long long start_request_time;
+	long long end_request_time;
+	long long tot_useconds;
 	int buff;
 	double throughput;
 	bool reply_ok;
@@ -71,7 +71,7 @@ int main(int argc, char* argv[]) {
 
 				//printf("LINE: %s", buff_line);
 
-				sscanf(buff_line, "%s\t%d\t%d\t%d\t%d\t%s\t%d\t%ld\t%ld\t%ld\t%lf\t%d\n",
+				sscanf(buff_line, "%s\t%d\t%d\t%d\t%d\t%s\t%d\t%lld\t%lld\t%lld\t%lf\t%d\n",
 						read_frag.video_name, &read_frag.bps, &dummy_ok, &read_frag.frag_seconds,
 						&read_frag.frag_number, dummy_ip, &read_frag.frag_bytesize,
 						&read_frag.start_request_time, &read_frag.end_request_time,
@@ -102,15 +102,15 @@ int main(int argc, char* argv[]) {
 	}
 
 
-	long int last_start_req = 0;
+	long long last_start_req = 0;
 	int time_video_tot_sec = 0;
-	long int video_req_time_tot_usec = 0;
-	long int first_start_req_time = 0;
-	long int first_reply_req_time = 0;
-	long int last_req_time = 0;
+	long long video_req_time_tot_usec = 0;
+	long long first_start_req_time = 0;
+	long long first_reply_req_time = 0;
+	long long last_req_time = 0;
 	bool setup = true;
 
-	long int pause_offset = 0;
+	long long pause_offset = 0;
 
 	frag_list.sort(compare_end_req_time);
 	first_reply_req_time = frag_list.begin()->end_request_time;
@@ -157,8 +157,8 @@ int main(int argc, char* argv[]) {
 				fragment_in_t *act_dup = *dup_it;
 
 				if ((maxBPS == NULL) || (maxBPS->bps < act_dup->bps)) {
-					long int diff_from_start = act_dup->end_request_time - first_reply_req_time;
-					long int now_playing = act_dup->frag_seconds * act_dup->frag_number;
+					long long diff_from_start = act_dup->end_request_time - first_reply_req_time;
+					long long now_playing = act_dup->frag_seconds * act_dup->frag_number;
 
 					if ((minTime == NULL) || (minTime->end_request_time > act_dup->end_request_time)) {
 						minTime = act_dup;
@@ -185,7 +185,7 @@ int main(int argc, char* argv[]) {
 	for (frag_list_it = frag_list_noDUP.begin(); frag_list_it != frag_list_noDUP.end(); frag_list_it++) {
 		fragment_in_t *act_frag = &(*frag_list_it);
 		double diff;
-		long int actual_time, ideal_time, actual_pause;
+		long long actual_time, ideal_time, actual_pause;
 		double buff_s;
 
 		if (setup) {
@@ -230,7 +230,7 @@ int main(int argc, char* argv[]) {
 		time_video_tot_sec += act_frag->frag_seconds;
 
 		int n_big_buff = snprintf (big_buff, sizeof(big_buff),
-				"%lf\t%s\t%08d\t%d\t%d\t%d\t%s\t%d\t%d\t%ld\t%ld\t%lf\t%ld\t%lf\t%lf\t%lf\t%lf\n",
+				"%lf\t%s\t%08d\t%d\t%d\t%d\t%s\t%d\t%d\t%lld\t%lld\t%lf\t%lld\t%lf\t%lf\t%lf\t%lf\n",
 				((double) actual_time) / 1000000.0,
 				act_frag->video_name, act_frag->bps, act_frag->reply_ok, act_frag->frag_seconds,
 				act_frag->frag_number, inet_ntoa(act_frag->choosed_interface),

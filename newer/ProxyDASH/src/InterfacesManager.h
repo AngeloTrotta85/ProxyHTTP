@@ -48,6 +48,7 @@ public:
 	} mean_var_t;
 
 	typedef struct interface_stat {
+		char if_name[16];
 		struct in_addr addr_info;
 		std::vector <mean_var_t> block_vector;
 		int filled_block;

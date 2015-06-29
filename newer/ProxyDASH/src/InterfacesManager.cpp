@@ -269,6 +269,7 @@ void InterfacesManager::chooseIF(struct sockaddr_in &if_to_use, std::list<struct
 			if_thr_vector[if_idx].block_vector.resize(BLOCK_NUMBER);
 			if_thr_vector[if_idx].filled_block = 0;
 			if_thr_vector[if_idx].addr_info.s_addr = interfaces_map[if_idx].addr_info;
+			strncpy(if_thr_vector[if_idx].if_name, interfaces_map[if_idx].name, sizeof (if_thr_vector[if_idx].if_name));
 
 			for (int block_idx = 0; block_idx < (int)if_thr_vector[if_idx].block_vector.size(); block_idx++) {
 				//double sumByte = 0;
@@ -382,7 +383,7 @@ void InterfacesManager::chooseIF(struct sockaddr_in &if_to_use, std::list<struct
 
 		debug_medium("Best interface is %s\n", inet_ntoa(if_to_use.sin_addr));
 		for (int if_idx = 0; if_idx < (int)if_thr_vector.size(); if_idx++) {
-			debug_medium("IF: %s - ", inet_ntoa(if_thr_vector[if_idx].addr_info));
+			debug_medium("IF: %s %s - ", if_thr_vector[if_idx].if_name, inet_ntoa(if_thr_vector[if_idx].addr_info));
 			for (int i = 0; i < (int)if_thr_vector[if_idx].block_vector.size(); i++) {
 				//printf ("%d ", glob_var[idx_if][vec_type][i]);
 				debug_medium ("%.2lf[%.2lf] ", if_thr_vector[if_idx].block_vector[i].mean,  if_thr_vector[if_idx].block_vector[i].standard_dev );
