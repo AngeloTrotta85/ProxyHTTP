@@ -434,7 +434,7 @@ void InterfacesManager::chooseIF(struct sockaddr_in &if_to_use, std::list<struct
 					toADD.sin_port=htons(0);
 					toADD.sin_addr.s_addr = interfaces_map [if_idx].addr_info;
 
-					debug_medium("IF %d need to be updated\n", inet_ntoa(tt));
+					debug_medium("IF %s need to be updated\n", inet_ntoa(tt));
 
 					if_to_update.push_back(toADD);
 				}
