@@ -424,7 +424,8 @@ void InterfacesManager::chooseIF(struct sockaddr_in &if_to_use, std::list<struct
 			debug_medium("IF: %s - Time to last update: %lld usec\n", inet_ntoa(tt), timeDIFF);
 
 			//if ((interfaces_map[if_idx].stats[BLOCK_TOTAL_DIMENSION - 1].timestamp == 0) || (timeDIFF >= 10)) {
-			if (	(timeDIFF >= timer_update) ||
+			if (	(if_to_use.sin_addr.s_addr != interfaces_map [if_idx].addr_info) ||
+					(timeDIFF >= timer_update) ||
 					( 	(interfaces_map[if_idx].stats[BLOCK_TOTAL_DIMENSION - 1].timestamp.tv_sec == 0) &&
 						(interfaces_map[if_idx].stats[BLOCK_TOTAL_DIMENSION - 1].timestamp.tv_usec == 0) ) ){
 				// controllo che non sia quello scelto per inviare il pacchetto su...
