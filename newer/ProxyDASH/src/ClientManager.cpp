@@ -126,7 +126,7 @@ bool ClientManager::getRequestFromClient(void) {
 		return false;
 	}
 	else if (nrcv == 0) {
-		printf("Connection closed by client\n");
+		debug_high("ClientManager::getRequestFromClient - Connection closed by client\n");
 		return false;
 	}
 	else {
@@ -200,7 +200,7 @@ bool ClientManager::manageRequest(void) {
 	}
 	else {
 		//tratto in maniera trasparente questa connessione tcp
-		debug_medium("Is NOT an MPEG-DASH get\n");
+		debug_medium("Managing transparently non MPEG-DASH get (no stats update)\n");
 		StatManager::getInstance().actual_stats.isMS4 = false;
 	}
 
@@ -248,8 +248,8 @@ bool ClientManager::sendGETtoDest(struct sockaddr_in *if_to_bind) {
 				return false;
 			}
 			else {
-				debug_high("Sending the original req to the destination: \n******************************\n%s\n******************************\n",
-						rm.getCopyOfGET());
+				//debug_high("Sending the original req to the destination: \n******************************\n%s\n******************************\n",
+				//		rm.getCopyOfGET());
 
 				int n_send = send(sockfd_VideoServer, rm.getCopyOfGET(), strlen(rm.getCopyOfGET()), 0);
 				if (n_send < 0) {
@@ -323,7 +323,7 @@ void ClientManager::manageTransferFromDestToClient(struct sockaddr_in *if_used) 
 
 	gettimeofday(&time_st, NULL);
 
-	debug_high("Receiving from client and sending to the server\n");
+	debug_high("Receiving from server and sending to the client\n");
 
 	do {
 		memset(buffer, 0, sizeof(buffer));
@@ -343,7 +343,7 @@ void ClientManager::manageTransferFromDestToClient(struct sockaddr_in *if_used) 
 				n_tot_recv += n_recv;
 				block_stat_recv += n_recv;
 
-				debug_medium("\r%d of %d  ", n_recv, n_tot_recv);
+				debug_high("\r%d of %d  ", n_recv, n_tot_recv);
 
 				StatManager::getInstance().actual_stats.reply_ok = true;
 
@@ -372,7 +372,7 @@ void ClientManager::manageTransferFromDestToClient(struct sockaddr_in *if_used) 
 	time(&StatManager::getInstance().actual_stats.end_request_time);
 	gettimeofday(&StatManager::getInstance().actual_stats.end_request_timeval, NULL);
 
-	debug_medium("\n");
+	debug_high("\n");
 
 	if (n_tot_recv == block_stat_recv) {	// never made stats
 		gettimeofday(&time_en, NULL);

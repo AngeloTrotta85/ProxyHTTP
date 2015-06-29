@@ -78,6 +78,12 @@ void StatManager::makeStat() {
 				idx++;
 			}
 
+			debug_medium("STAT - if-sused: %s, %d byte in %lld millisec at %lf KB/s\n",
+					inet_ntoa(actual_stats.choosed_interface),
+					actual_stats.frag_bytesize,
+					useconds/1000,
+					throughput/1024.0);
+
 			// videoname bitrate ok? sec_per_frag frag_number INTERFACE_IP frag_byte start_time end_time useconds throughput(B/s) buff_size
 
 			//int nw = snprintf(buff_stat, sizeof(buff_stat), "%s\t%d\t%d\t%d\t%s\t%d\t%s.%ld\t%s.%ld\t%ld\t%f\n",
