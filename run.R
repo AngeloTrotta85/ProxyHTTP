@@ -1,3 +1,3 @@
 library(methods)
 library(shiny)
-runApp("plots", display.mode = "showcase", port=6666)
+runApp("plots", port=6666)

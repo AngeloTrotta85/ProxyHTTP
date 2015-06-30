@@ -16,10 +16,15 @@ shinyUI(fluidPage(
 #          "Percent Hispanic", "Percent Asian"),
 #        selected = "Percent White"),
       
-      selectInput("var2", 
+      selectInput("xcol", 
+        label = "Choose X",
+        choices = list("TIME" = "V1", "SEGMENT" = "V6"),
+		selected = "V5"),
+
+      selectInput("ycol", 
         label = "Choose metric to plot",
-        choices = list("Bitrate", "Buffer"),
-        selected = "Bitrate")
+        choices = list("Bitrate" = "V3", "Buffer" = "V17", "SIZE" = "V8", "THROUGHPUT" = "V14", "PAUSE" = "V16"),
+        selected = "V3")
       
     ),
     
