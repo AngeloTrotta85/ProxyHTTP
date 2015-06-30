@@ -156,6 +156,17 @@ int main(int argc,char* argv[]) {
 		return EXIT_FAILURE;
 	}
 
+	if (log_file == NULL) {
+		fprintf(stderr, "Insert log file name\n");
+		usage(argv[0]);
+		return EXIT_FAILURE;
+	}
+	if (listening_port == 0) {
+		fprintf(stderr, "Insert listening port\n");
+		usage(argv[0]);
+		return EXIT_FAILURE;
+	}
+
 	/*printf ("port = %hu, log = %s\n", listening_port, log_file);
 	for (std::list<std::string>::iterator it_str = interface2exclude.begin(); it_str != interface2exclude.end(); it_str++ ) {
 		printf ("interface %s\n", it_str->c_str());
