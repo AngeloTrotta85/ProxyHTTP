@@ -28,6 +28,10 @@ shinyUI(fluidPage(
       
     ),
     
-    mainPanel(plotOutput("chart"))
+    mainPanel(
+    	verbatimTextOutput("summary"),
+		tableOutput("view"),
+		plotOutput("chart")
+	)
   )
 ))

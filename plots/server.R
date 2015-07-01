@@ -26,7 +26,7 @@ shinyServer(
 #			print(XX)
 #			print(dataf[,c(input$xcol)])
 			dataf <- dataInput()
-			print(dataf)
+			#print(dataf)
 			#print(input)
 			dataf[, c(input$xcol, input$ycol)]
 		})
@@ -35,6 +35,16 @@ shinyServer(
 #		df = read.table(paste("data",var))
 #		print(df)
 #		dd = data.frame(x = df$V6, y = df$V3)
+
+		output$summary <- renderPrint({
+    		dataset <- selectedData()
+    		summary(dataset)
+  		})
+
+  		output$view <- renderTable({
+    		#head(selectedData(), n = input$obs)
+    		head(selectedData())
+  		})
 		
 		output$chart <- renderPlot({
 			plot(selectedData(), type="l")
