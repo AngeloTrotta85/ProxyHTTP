@@ -18,13 +18,15 @@ shinyUI(fluidPage(
       
       selectInput("xcol", 
         label = "Choose X",
-        choices = list("TIME" = "V1", "SEGMENT" = "V6"),
-		selected = "V5"),
+        choices = list("TIME" = "TS", "SEGMENT" = "FN"),
+		selected = "TS"),
+
+         #col.names = c("TS","NAME","BPS","RCV","SEC","FN","INT","BYTE","BIT","START","END","SEND","UNKN","TBYTE","TBIT","PAUSE","BUFF"))
 
       selectInput("ycol", 
         label = "Choose metric to plot",
-        choices = list("Bitrate" = "V3", "Buffer" = "V17", "SIZE" = "V8", "THROUGHPUT" = "V14", "PAUSE" = "V16"),
-        selected = "V3")
+        choices = list("Bitrate" = "BPS", "Buffer" = "BUFF", "SIZE" = "BYTE", "THROUGHPUT" = "TBYTE", "PAUSE" = "PAUSE"),
+        selected = "BITRATE")
       
     ),
     

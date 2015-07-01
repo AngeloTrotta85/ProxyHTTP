@@ -14,7 +14,8 @@ shinyServer(
 		dataInput <- reactive({
 #			read.table("data/testProvaOK.log-BigBuckBunny_2sec_parsed")
 			#TODO Add names to the columns
-			read.table(paste("data/",input$vaar,sep = ""))
+			read.table(paste("data/",input$vaar,sep = ""), 
+			col.names = c("TS","NAME","BPS","RCV","SEC","FN","INT","BYTE","BIT","START","END","SEND","UNKN","TBYTE","TBIT","PAUSE","BUFF"))
 #			print(input$vaar)
 #			print(input$var2)
 #			dataf <- as.data.frame(dataInput())
