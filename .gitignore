@@ -1,0 +1,4 @@
+*.d
+*.o
+plots/data
+parsetrace/VideoTraceParsing
