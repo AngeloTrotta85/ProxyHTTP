@@ -45,6 +45,7 @@ public:
 	int forkAndManageClient(void);
 
 	void setByteStat(int byteS);
+	void setDiscardFlag(bool discard);
 
 private:
 
@@ -62,6 +63,7 @@ private:
 	int sockfd_VideoServer;
 
 	int byte_update;
+	bool discard_MPEGDASH;
 
 	char buffer[16384];
 

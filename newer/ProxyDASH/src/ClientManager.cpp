@@ -20,12 +20,17 @@ ClientManager::ClientManager() {
 	sockfd_VideoServer = -1;
 
 	byte_update = BLOCK_SIZE_STATS_BYTE;
+	discard_MPEGDASH = false;
 }
 
 ClientManager::~ClientManager() { }
 
 void ClientManager::setByteStat(int byteS) {
 	byte_update = byteS;
+}
+
+void ClientManager::setDiscardFlag(bool discard) {
+	discard_MPEGDASH = discard;
 }
 
 bool ClientManager::startListeningForClient(int port) {
@@ -200,20 +205,26 @@ bool ClientManager::manageRequest(void) {
 	}
 	else {
 		//tratto in maniera trasparente questa connessione tcp
-		debug_medium("Managing transparently non MPEG-DASH get (no stats update)\n");
+		debug_medium("Managing transparently non MPEG-DASH M4S frame get (no stats update)\n");
 		StatManager::getInstance().actual_stats.isMS4 = false;
 	}
 
-	// Sending the REQUEST to destination and managing the transfer
-	if (sendGETtoDest(if_to_use_act)) {
-		manageTransferFromDestToClient(if_to_use_act);
+	if (rm.isMPEGDASHreq() || (!discard_MPEGDASH)) {
 
-		close (sockfd_VideoServer);
-		sockfd_VideoServer = -1;
+		// Sending the REQUEST to destination and managing the transfer
+		if (sendGETtoDest(if_to_use_act)) {
+			manageTransferFromDestToClient(if_to_use_act);
 
+			close (sockfd_VideoServer);
+			sockfd_VideoServer = -1;
+
+		}
+		else {
+			debug_low("Error sending request to the destination\n");
+		}
 	}
 	else {
-		debug_low("Error sending request to the destination\n");
+		debug_low("Discarding non MPEGH-DASH requests due to the '-x' parameter\n");
 	}
 
 	return true;

@@ -164,6 +164,7 @@ bool RequestManager::load_req(char *str_req, int size_str) {
 		}
 
 		debug_low("\n");
+		debug_low("GET: %s\n", req_fields[std::string("GET")].c_str());
 		debug_low("HOST: %s - ", host_name);
 		debug_low("PORT: %d - ", server_port);
 		debug_low("PATH: %s\n", path_name);
