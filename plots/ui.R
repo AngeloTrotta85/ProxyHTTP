@@ -32,7 +32,7 @@ shinyUI(fluidPage(
     
     mainPanel(
     	verbatimTextOutput("summary"),
-		tableOutput("view"),
+		#tableOutput("view"),
 		plotOutput("chart")
 	)
   )

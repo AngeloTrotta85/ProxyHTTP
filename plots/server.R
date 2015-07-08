@@ -10,7 +10,7 @@ shinyServer(
 			selectInput("vaar", "Choose Option:", as.list(camps)) 
 		})
 
-		dataf <- as.data.frame(read.table("data/test-BigBuckBunny_1sec_parsed"))
+		dataf <- as.data.frame(read.table(paste("data/",camps[1],sep="")))
 		dataInput <- reactive({
 #			read.table("data/testProvaOK.log-BigBuckBunny_2sec_parsed")
 			#TODO Add names to the columns
@@ -27,6 +27,8 @@ shinyServer(
 #			print(XX)
 #			print(dataf[,c(input$xcol)])
 			dataf <- dataInput()
+			if (input$xcol == "TS")
+				dataf = dataf[order(dataf$TS),] 
 			#print(dataf)
 			#print(input)
 			dataf[, c(input$xcol, input$ycol)]
@@ -42,12 +44,12 @@ shinyServer(
     		summary(dataset)
   		})
 
-  		output$view <- renderTable({
+  		#output$view <- renderTable({
     		#head(selectedData(), n = input$obs)
-    		head(selectedData())
-  		})
+    	#	head(selectedData())
+  		#})
 		
 		output$chart <- renderPlot({
-			plot(selectedData(), type="l")
+			plot(selectedData(), type="l", col="red", lwd = 10)
 		})
 })
