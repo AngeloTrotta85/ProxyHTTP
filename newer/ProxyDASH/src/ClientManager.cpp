@@ -414,6 +414,11 @@ void ClientManager::forkAndUpdateStats(struct sockaddr_in *addr_in) {
 
 			debug_medium("%d - Sono un nuovo processo che deve aggiornare l'interfaccia: %s\n", getpid(), inet_ntoa(addr_in->sin_addr));
 
+			// close the connection from the client (not needed for testing the connection)
+			// now the client can go on...
+			close (new_sockfd_VideoClient);
+			new_sockfd_VideoClient = -1;
+
 			// Sending the REQUEST to destination and managing the transfer
 			if (sendGETtoDest(addr_in)) {
 				manageTransferOnStatUpdate(addr_in);
