@@ -2,3 +2,4 @@
 *.o
 plots/data
 parsetrace/VideoTraceParsing
+*.DS_Store
