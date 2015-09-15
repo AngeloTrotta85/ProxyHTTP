@@ -48,7 +48,7 @@ public:
 	bool load_req(char *str_req, int size_str);
 
 	bool isLoaded(void);
-
+	bool isConnectReq(void);
 	bool isGET(void);
 	bool isMPEGDASHreq(void);
 	bool isMPEGDASH_M4S(void);
@@ -97,6 +97,7 @@ private:
 
 	bool loaded;
 	bool isget;
+	bool isConnect;
 	MPEG_DASH_TYPE mpeg_dash;
 };
 

@@ -163,6 +163,25 @@ bool ClientManager::getRequestFromClient(void) {
 				rm.setServerAddr(s->sin_addr.s_addr);
 			}
 
+			if (rm.isConnectReq()) {
+				char *rep =
+				"HTTP/1.1 200 OK\n"
+				"Date: Thu, 19 Feb 2009 12:27:04 GMT\n"
+				"Server: Apache/2.2.3\n"
+				"Last-Modified: Wed, 18 Jun 2003 16:05:58 GMT\n"
+				"ETag: \"56d-9989200-1132c580\"\n"
+				"Content-Type: text/html\n"
+				"Content-Length: 15\n"
+				"Accept-Ranges: bytes\n"
+				"Connection: close\n"
+				"\n"
+				"sdfkjsdnbfkjbsf";
+
+				snprintf(rep, sizeof(rep), "");
+
+				send (new_sockfd_VideoClient, rep, strlen(rep), 0);
+			}
+
 			return false;	//TODO non so come si fa... per ora prendo solo GET
 
 			// boh! non so come/dove leggere la destinazione

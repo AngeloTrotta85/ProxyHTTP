@@ -16,6 +16,7 @@ RequestManager::RequestManager() {
 
 void RequestManager::init(void) {
 	loaded = false;
+	isConnect = false;
 	isget = false;
 	mpeg_dash = MPEGDASH_NO_TYPE;
 	server_port = 0;
@@ -28,6 +29,10 @@ void RequestManager::init(void) {
 
 bool RequestManager::isLoaded(void) {
 	return loaded;
+}
+
+bool RequestManager::isConnectReq(void) {
+	return isConnect;
 }
 
 bool RequestManager::isGET(void) {
@@ -63,6 +68,7 @@ bool RequestManager::load_req(char *str_req, int size_str) {
 
 	if (strncmp(buff_req, "GET ", 4) == 0) {
 		isget = true;
+
 
 		while ((end_row = strstr(start_row, "\r\n")) != NULL) {
 			int row_len = end_row - start_row;
@@ -186,6 +192,9 @@ bool RequestManager::load_req(char *str_req, int size_str) {
 
 		debug_high("******************************************\n");
 
+	}
+	else if (strncmp(buff_req, "CONNECT ", 7) == 0) {
+		isConnect = true;
 	}
 	else {
 		// this is not a get... take the address and the port of the server in another way
