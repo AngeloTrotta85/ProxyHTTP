@@ -287,9 +287,13 @@ bool ClientManager::sendGETtoDest(struct sockaddr_in *if_to_bind) {
 	else {
 		int risBind = 0;	// if I don't have to execute the bind '0' will be OK
 
+		debug_high("[PID: %d] - DEBUG (before bind) ClientManager::sendGETtoDest\n", getpid());
+
 		if (if_to_bind != NULL) {
 			risBind = bind (sockfd_VideoServer, (struct sockaddr *)if_to_bind, sizeof(struct sockaddr_in));
 		}
+
+		debug_high("[PID: %d] - DEBUG (after bind) ClientManager::sendGETtoDest\n", getpid());
 
 		if (risBind == 0) {
 
@@ -302,12 +306,16 @@ bool ClientManager::sendGETtoDest(struct sockaddr_in *if_to_bind) {
 				//debug_high("Sending the original req to the destination: \n******************************\n%s\n******************************\n",
 				//		rm.getCopyOfGET());
 
+				debug_high("[PID: %d] - DEBUG (connected) ClientManager::sendGETtoDest\n", getpid());
+
 				int n_send = send(sockfd_VideoServer, rm.getCopyOfGET(), strlen(rm.getCopyOfGET()), 0);
 				if (n_send < 0) {
 					perror("Error writing to server socket");
 					debug_high("[PID: %d] - END (false3) ClientManager::sendGETtoDest\n", getpid());
 					return false;
 				}
+
+				debug_high("[PID: %d] - DEBUG (sent %d bytes) ClientManager::sendGETtoDest\n", getpid(), n_send);
 			}
 		}
 		else {
