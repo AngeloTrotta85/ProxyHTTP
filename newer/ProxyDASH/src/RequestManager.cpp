@@ -52,6 +52,8 @@ bool RequestManager::load_req(char *str_req, int size_str) {
 	char *start_row, *end_row, *tmp_ptr, *tmp_start;
 	bool ris = true;
 
+	debug_high("[PID: %d] - BEGIN (before load_req) RequestManager::load_req\n", getpid());
+
 	// init variables
 	init();
 
@@ -256,6 +258,8 @@ bool RequestManager::load_req(char *str_req, int size_str) {
 	}
 
 	loaded = true;
+
+	debug_high("[PID: %d] - END (ris = %d) RequestManager::load_req\n", getpid(), ris);
 
 	return ris;
 }

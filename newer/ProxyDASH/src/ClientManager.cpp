@@ -143,6 +143,7 @@ bool ClientManager::getRequestFromClient(void) {
 	}
 	else {
 		// parsing the GET
+		debug_high("[PID: %d] - DEBUG (before load_req) ClientManager::getRequestFromClient\n", getpid());
 		if (!rm.load_req(buffer, nrcv)) {
 			// not a get and hence I have to get the destination address in another way
 			// fill at least host_name and server_port (if present)
@@ -152,6 +153,8 @@ bool ClientManager::getRequestFromClient(void) {
 			struct sockaddr_storage addr;
 			char ipstr[INET6_ADDRSTRLEN];
 			int port;
+
+			debug_high("[PID: %d] - DEBUG (false load_req) ClientManager::getRequestFromClient\n", getpid());
 
 			len = sizeof addr;
 			getpeername(new_sockfd_VideoClient, (struct sockaddr*)&addr, &len);
