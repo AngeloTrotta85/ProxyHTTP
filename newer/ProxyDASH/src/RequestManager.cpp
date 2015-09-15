@@ -195,6 +195,8 @@ bool RequestManager::load_req(char *str_req, int size_str) {
 	}
 	else if (strncmp(buff_req, "CONNECT ", 7) == 0) {
 		isConnect = true;
+		debug_high("Parsed a CONNECT request\n");
+		ris = false;
 	}
 	else {
 		// this is not a get... take the address and the port of the server in another way
