@@ -166,7 +166,7 @@ bool ClientManager::getRequestFromClient(void) {
 			if (rm.isConnectReq()) {
 				debug_high("Replying to CONNECT request\n");
 				char *rep =
-				"HTTP/1.1 400 Bad Request\n"
+				"HTTP/1.1 403 Forbidden\n"
 				"Date: Thu, 19 Feb 2009 12:27:04 GMT\n"
 				"Server: Apache/2.2.3\n"
 				"Last-Modified: Wed, 18 Jun 2003 16:05:58 GMT\n"
