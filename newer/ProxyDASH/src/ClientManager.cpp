@@ -274,6 +274,8 @@ bool ClientManager::sendGETtoDest(struct sockaddr_in *if_to_bind) {
 			return false;
 		}
 	}
+	
+	debug_high("End sending the GET to the server using %s\n", inet_ntoa(if_to_bind->sin_addr));
 
 	//start STATS
 	time(&StatManager::getInstance().actual_stats.start_request_time);
