@@ -164,6 +164,7 @@ bool ClientManager::getRequestFromClient(void) {
 			}
 
 			if (rm.isConnectReq()) {
+				debug_high("Replying to CONNECT request\n");
 				char *rep =
 				"HTTP/1.1 200 OK\n"
 				"Date: Thu, 19 Feb 2009 12:27:04 GMT\n"
@@ -177,9 +178,10 @@ bool ClientManager::getRequestFromClient(void) {
 				"\n"
 				"sdfkjsdnbfkjbsf";
 
-				snprintf(rep, sizeof(rep), "");
+				//snprintf(rep, sizeof(rep), "");
 
-				send (new_sockfd_VideoClient, rep, strlen(rep), 0);
+				int s = send (new_sockfd_VideoClient, rep, strlen(rep), 0);
+				debug_high("Succesfully sent %d bytes\n", s);
 			}
 
 			return false;	//TODO non so come si fa... per ora prendo solo GET
