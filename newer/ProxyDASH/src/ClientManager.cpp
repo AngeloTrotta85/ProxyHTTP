@@ -120,7 +120,12 @@ int ClientManager::forkAndManageClient(void) {
 
 bool ClientManager::getRequestFromClient(void) {
 
-	if (new_sockfd_VideoClient < 0) return false;
+	debug_high("[PID: %d] - BEGIN ClientManager::getRequestFromClient\n", getpid());
+
+	if (new_sockfd_VideoClient < 0) {
+		debug_high("[PID: %d] - END (false1) ClientManager::getRequestFromClient\n", getpid());
+		return false;
+	}
 
 	bzero(buffer, sizeof(buffer));
 
@@ -128,10 +133,12 @@ bool ClientManager::getRequestFromClient(void) {
 
 	if (nrcv < 0) {
 		perror("Error recv from client socket");
+		debug_high("[PID: %d] - END (false2) ClientManager::getRequestFromClient\n", getpid());
 		return false;
 	}
 	else if (nrcv == 0) {
 		debug_high("ClientManager::getRequestFromClient - Connection closed by client\n");
+		debug_high("[PID: %d] - END (false3) ClientManager::getRequestFromClient\n", getpid());
 		return false;
 	}
 	else {
@@ -184,17 +191,24 @@ bool ClientManager::getRequestFromClient(void) {
 				debug_high("Succesfully sent %d bytes\n", s);
 			}
 
+			debug_high("[PID: %d] - END (false4) ClientManager::getRequestFromClient\n", getpid());
 			return false;	//TODO non so come si fa... per ora prendo solo GET
 
 			// boh! non so come/dove leggere la destinazione
 		}
 	}
 
+	debug_high("[PID: %d] - END (true) ClientManager::getRequestFromClient\n", getpid());
 	return true;
 }
 
 bool ClientManager::manageRequest(void) {
-	if (!rm.isLoaded()) return false;
+	debug_high("[PID: %d] - BEGIN ClientManager::manageRequest\n", getpid());
+
+	if (!rm.isLoaded()) {
+		debug_high("[PID: %d] - END (false1) ClientManager::sendGETtoDest\n", getpid());
+		return false;
+	}
 
 	struct sockaddr_in if_to_use;
 	struct sockaddr_in *if_to_use_act = NULL;		// pointer used to check later if the bind should be done or not
@@ -248,11 +262,14 @@ bool ClientManager::manageRequest(void) {
 		debug_low("Discarding non MPEGH-DASH requests due to the '-x' parameter\n");
 	}
 
+	debug_high("[PID: %d] - END (true) ClientManager::manageRequest\n", getpid());
 	return true;
 }
 
 bool ClientManager::sendGETtoDest(struct sockaddr_in *if_to_bind) {
 	struct sockaddr_in host_addr;
+
+	debug_high("[PID: %d] - BEGIN ClientManager::sendGETtoDest\n", getpid());
 
 	host_addr.sin_port = htons(rm.getServerPort());
 	host_addr.sin_family=AF_INET;
@@ -264,6 +281,7 @@ bool ClientManager::sendGETtoDest(struct sockaddr_in *if_to_bind) {
 	sockfd_VideoServer = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP);
 	if (sockfd_VideoServer < 0) {
 		perror("Error on creating socket for the server connection");
+		debug_high("[PID: %d] - END (false1) ClientManager::sendGETtoDest\n", getpid());
 		return false;
 	}
 	else {
@@ -277,6 +295,7 @@ bool ClientManager::sendGETtoDest(struct sockaddr_in *if_to_bind) {
 
 			if (connect(sockfd_VideoServer, (struct sockaddr*)&host_addr, sizeof(struct sockaddr)) < 0) {
 				perror("Error in connecting to remote server");
+				debug_high("[PID: %d] - END (false2) ClientManager::sendGETtoDest\n", getpid());
 				return false;
 			}
 			else {
@@ -286,12 +305,14 @@ bool ClientManager::sendGETtoDest(struct sockaddr_in *if_to_bind) {
 				int n_send = send(sockfd_VideoServer, rm.getCopyOfGET(), strlen(rm.getCopyOfGET()), 0);
 				if (n_send < 0) {
 					perror("Error writing to server socket");
+					debug_high("[PID: %d] - END (false3) ClientManager::sendGETtoDest\n", getpid());
 					return false;
 				}
 			}
 		}
 		else {
 			perror("Error binding");
+			debug_high("[PID: %d] - END (false4) ClientManager::sendGETtoDest\n", getpid());
 			return false;
 		}
 	}
@@ -301,6 +322,8 @@ bool ClientManager::sendGETtoDest(struct sockaddr_in *if_to_bind) {
 	//start STATS
 	time(&StatManager::getInstance().actual_stats.start_request_time);
 	gettimeofday(&(StatManager::getInstance().actual_stats.start_request_timeval), NULL);
+
+	debug_high("[PID: %d] - END (true) ClientManager::sendGETtoDest\n", getpid());
 
 	return true;
 }
@@ -354,6 +377,8 @@ void ClientManager::manageTransferFromDestToClient(struct sockaddr_in *if_used) 
 	int n_tot_recv = 0;
 	int block_stat_recv = 0;
 	struct timeval time_st, time_en;
+
+	debug_high("[PID: %d] - BEGIN ClientManager::manageTransferFromDestToClient\n", getpid());
 
 	gettimeofday(&time_st, NULL);
 
@@ -414,6 +439,8 @@ void ClientManager::manageTransferFromDestToClient(struct sockaddr_in *if_used) 
 	}
 
 	StatManager::getInstance().makeStat();
+
+	debug_high("[PID: %d] - END ClientManager::manageTransferFromDestToClient\n", getpid());
 }
 
 // only the parent process should exit from this function...
