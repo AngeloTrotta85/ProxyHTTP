@@ -66,16 +66,66 @@ bool RequestManager::load_req(char *str_req, int size_str) {
 
 	debug_high("\n***REQEST TO PARSE: \n%s\n", buff_req);
 
-	if (strncmp(buff_req, "GET ", 4) == 0) {
+	if ( (strncmp(buff_req, "GET ", 4) == 0) || (strncmp(buff_req, "HEAD ", 5) == 0) ) {
 		isget = true;
-
 
 		while ((end_row = strstr(start_row, "\r\n")) != NULL) {
 			int row_len = end_row - start_row;
 
 			//printf("STRING TO PARSE: %s\n", std::string(start_row, row_len).c_str());
 
-			if (strncmp(start_row, "GET ", 4) == 0) {
+			if (strncmp(start_row, "HEAD ", 5) == 0) {
+
+				req_fields[std::string("HEAD")] = std::string(start_row, 5, row_len - 5);
+
+				// parse the field host post and path
+				server_port = 80;
+				memset(host_name, 0, sizeof(host_name));
+				memset(path_name, 0, sizeof(path_name));
+
+				tmp_start = start_row + 5;
+				tmp_ptr = strchr(tmp_start, ' ');
+
+				if (tmp_ptr != NULL) {
+					int size_tot_path = tmp_ptr - tmp_start;
+
+					// skip "http://"
+					tmp_ptr = strstr(tmp_start, "//");
+					if ((tmp_ptr != NULL) && ((tmp_ptr - tmp_start) < size_tot_path)) {
+
+						size_tot_path -= (tmp_ptr + 2) - tmp_start;
+
+						tmp_start = tmp_ptr + 2;
+					}
+
+					// catch the port and the host-name
+					tmp_ptr = strstr(tmp_start, ":");
+					if ((tmp_ptr != NULL) && ((tmp_ptr - tmp_start) < size_tot_path)) {
+						*tmp_ptr = 0;
+						sscanf(tmp_start, "%s", host_name);
+
+						*tmp_ptr = ':';
+						sscanf(tmp_ptr+1, "%d/%*s", &server_port);
+					}
+					else {
+						tmp_ptr = strstr(tmp_start, "/");
+						if (tmp_ptr != NULL) {
+							*tmp_ptr = 0;
+							sscanf(tmp_start, "%s", host_name);
+							*tmp_ptr = '/';
+						}
+						else {
+							sscanf(tmp_start, "%s", host_name);
+						}
+					}
+
+					//locate the path
+					tmp_ptr = strstr(tmp_start, "/");
+					if ((tmp_ptr != NULL) && ((tmp_ptr - tmp_start) < size_tot_path)) {
+						sscanf(tmp_ptr, "%s %*s", path_name);
+					}
+				}
+			} else if (strncmp(start_row, "GET ", 4) == 0) {
 
 				req_fields[std::string("GET")] = std::string(start_row, 4, row_len - 4);
 
@@ -170,7 +220,8 @@ bool RequestManager::load_req(char *str_req, int size_str) {
 		}
 
 		debug_low("\n");
-		debug_low("GET: %s\n", req_fields[std::string("GET")].c_str());
+		if (req_fields.count(std::string("GET"))) debug_low("GET: %s\n", req_fields[std::string("GET")].c_str());
+		if (req_fields.count(std::string("HEAD"))) debug_low("HEAD: %s\n", req_fields[std::string("HEAD")].c_str());
 		debug_low("HOST: %s - ", host_name);
 		debug_low("PORT: %d - ", server_port);
 		debug_low("PATH: %s\n", path_name);
