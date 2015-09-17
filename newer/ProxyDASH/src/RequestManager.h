@@ -32,7 +32,8 @@
 
 #include "Miscellaneous.h"
 
-#define DUMMY_REQ "GET /ftp/datasets/DASHDataset2014/BigBuckBunny/1sec/bunny_91917bps/BigBuckBunny_1s1.m4s HTTP/1.1\nHost: www-itec.uni-klu.ac.at\nConnection: close\n\n"
+//#define DUMMY_REQ "GET /ftp/datasets/DASHDataset2014/BigBuckBunny/1sec/bunny_91917bps/BigBuckBunny_1s1.m4s HTTP/1.1\nHost: www-itec.uni-klu.ac.at\nConnection: close\n\n"
+#define DUMMY_REQ "GET /ftp/datasets/DASHDataset2014/BigBuckBunny/1sec/bunny_270316bps/BigBuckBunny_1s3.m4s HTTP/1.1\nHost: www-itec.uni-klu.ac.at\nConnection: close\n\n"
 
 class RequestManager {
 public:
