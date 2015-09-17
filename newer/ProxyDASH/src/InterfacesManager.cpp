@@ -193,7 +193,7 @@ void InterfacesManager::updateInterfaceStats (struct sockaddr_in *if_used, int p
 		//get semaphore
 		sem_wait(sem_estimator);
 
-		debug_medium("[%d] ----- Updating interface %s STATS: %ud byte in %lld usec\n",
+		debug_medium("[%d] ----- Updating interface %s STATS: %u byte in %lld usec\n",
 				getpid(), inet_ntoa(if_used->sin_addr), pktSize, time_usec);
 
 		for (u_int32_t j = 0; j < interfaces_map_vector_size; j++) {
