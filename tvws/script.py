@@ -28,8 +28,8 @@ def distance(x1,y1,x2,y2):
 
 bsx = 5000
 bsy = 5000
-ux = np.random.random_integers(0,10000)
-uy = np.random.random_integers(0,10000)
+ux = np.random.random_integers(0,8000)
+uy = np.random.random_integers(0,8000)
 nextx = ux
 nexty = uy
 speed = 18
@@ -38,6 +38,9 @@ counter = 5
 shadow = 0
 ptx = 27
 fw = open("trace.sh","w+")
+fw.write("./tc.sh set eth0 100000\n")
+fw.write("./tc.sh set wlan0 100000\n")
+fw.write("sleep 10\n")
 for time in range(200):
     # Get the distance
     d = distance(bsx,bsy,ux,uy)
@@ -64,8 +67,8 @@ for time in range(200):
         uy = max(nexty, uy - speed)
 
     if nextx == ux and nexty == uy:
-        nextx = np.random.random_integers(0,10000)
-        nexty = np.random.random_integers(0,10000)
+        nextx = np.random.random_integers(0,8000)
+        nexty = np.random.random_integers(0,8000)
 
     # Determine pathloss and datarate
     plc = plnew(900,d/1000.)
