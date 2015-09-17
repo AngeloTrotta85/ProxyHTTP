@@ -38,6 +38,9 @@ counter = 5
 shadow = 0
 ptx = 27
 fw = open("trace.sh","w+")
+fw.write("./tc.sh set eth0 100000\n")
+fw.write("./tc.sh set wlan0 100000\n")
+fw.write("sleep 10\n")
 for time in range(200):
     # Get the distance
     d = distance(bsx,bsy,ux,uy)
