@@ -369,11 +369,14 @@ void ClientManager::manageTransferOnStatUpdate(struct sockaddr_in *if_used) {
 		time_t start_t, end_t;
 		double diff_t;
 
+		debug_medium("[%d] ----- Start receiving the STATISTICAL packet\n", getpid());
+
 		time(&start_t);
 		while(tryRead) {
 			tryRead = false;
 
 			n_recv = recv(sockfd_VideoServer, buffer, sizeof(buffer), MSG_DONTWAIT);
+			debug_medium("[%d] ----- Received %d byte for the the STATISTICAL packet\n", getpid(), n_recv);
 			if ((n_recv < 0) && ((errno == EAGAIN) || (errno == EWOULDBLOCK))) {
 				usleep(100000);
 
@@ -382,6 +385,8 @@ void ClientManager::manageTransferOnStatUpdate(struct sockaddr_in *if_used) {
 				if (diff_t < InterfacesManager::getInstance().timer_update) {
 					tryRead = true;
 				}
+
+				debug_medium("[%d] ----- Received %d byte for the the STATISTICAL packet\n", getpid(), n_recv);
 			}
 		}
 
