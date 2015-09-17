@@ -21,6 +21,7 @@ ClientManager::ClientManager() {
 
 	byte_update = BLOCK_SIZE_STATS_BYTE;
 	discard_MPEGDASH = false;
+	dummy_pkt_stat = false;
 }
 
 ClientManager::~ClientManager() { }
@@ -31,6 +32,10 @@ void ClientManager::setByteStat(int byteS) {
 
 void ClientManager::setDiscardFlag(bool discard) {
 	discard_MPEGDASH = discard;
+}
+
+void ClientManager::setDummyPktStat(bool dummy_stat) {
+	dummy_pkt_stat = dummy_stat;
 }
 
 bool ClientManager::startListeningForClient(int port) {
@@ -250,7 +255,7 @@ bool ClientManager::manageRequest(void) {
 	if (rm.isMPEGDASHreq() || (!discard_MPEGDASH)) {
 
 		// Sending the REQUEST to destination and managing the transfer
-		if (sendGETtoDest(if_to_use_act)) {
+		if (sendGETtoDest(if_to_use_act, false)) {
 			manageTransferFromDestToClient(if_to_use_act);
 
 			close (sockfd_VideoServer);
@@ -269,7 +274,7 @@ bool ClientManager::manageRequest(void) {
 	return true;
 }
 
-bool ClientManager::sendGETtoDest(struct sockaddr_in *if_to_bind) {
+bool ClientManager::sendGETtoDest(struct sockaddr_in *if_to_bind, bool dummy_req) {
 	struct sockaddr_in host_addr;
 
 	debug_high("[PID: %d] - BEGIN ClientManager::sendGETtoDest\n", getpid());
@@ -311,7 +316,9 @@ bool ClientManager::sendGETtoDest(struct sockaddr_in *if_to_bind) {
 
 				debug_high("[PID: %d] - DEBUG (connected) ClientManager::sendGETtoDest\n", getpid());
 
-				int n_send = send(sockfd_VideoServer, rm.getCopyOfGET(), strlen(rm.getCopyOfGET()), 0);
+				int n_send;
+				if (dummy_req)	n_send = send(sockfd_VideoServer, rm.getDummyGET(), strlen(rm.getDummyGET()), 0);
+				else 			n_send = send(sockfd_VideoServer, rm.getCopyOfGET(), strlen(rm.getCopyOfGET()), 0);
 				if (n_send < 0) {
 					perror("Error writing to server socket");
 					debug_high("[PID: %d] - END (false3) ClientManager::sendGETtoDest\n", getpid());
@@ -486,7 +493,7 @@ void ClientManager::forkAndUpdateStats(struct sockaddr_in *addr_in) {
 			new_sockfd_VideoClient = -1;
 
 			// Sending the REQUEST to destination and managing the transfer
-			if (sendGETtoDest(addr_in)) {
+			if (sendGETtoDest(addr_in, true)) {
 				manageTransferOnStatUpdate(addr_in);
 
 				close (sockfd_VideoServer);
