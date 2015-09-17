@@ -363,7 +363,27 @@ void ClientManager::manageTransferOnStatUpdate(struct sockaddr_in *if_used) {
 
 	do {
 		memset(buffer, 0, sizeof(buffer));
-		n_recv = recv(sockfd_VideoServer, buffer, sizeof(buffer), 0);
+		//n_recv = recv(sockfd_VideoServer, buffer, sizeof(buffer), 0);
+
+		bool tryRead = true;
+		time_t start_t, end_t;
+		double diff_t;
+
+		time(&start_t);
+		while(tryRead) {
+			tryRead = false;
+
+			n_recv = recv(sockfd_VideoServer, buffer, sizeof(buffer), MSG_DONTWAIT);
+			if ((n_recv < 0) && ((errno == EAGAIN) || (errno == EWOULDBLOCK))) {
+				usleep(100000);
+
+				time(&end_t);
+				diff_t = difftime(end_t, start_t);
+				if (diff_t < InterfacesManager::getInstance().timer_update) {
+					tryRead = true;
+				}
+			}
+		}
 
 		if (n_recv > 0) {
 

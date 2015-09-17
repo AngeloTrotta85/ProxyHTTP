@@ -116,6 +116,8 @@ private:
 	
 	bool flag_update;
 	bool random_chioce;
+
+public:
 	int timer_update;
 };
 
