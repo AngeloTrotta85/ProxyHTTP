@@ -66,7 +66,7 @@ bool RequestManager::load_req(char *str_req, int size_str) {
 
 	start_row = end_row = buff_req;
 
-	//debug_high("\n***REQEST TO PARSE: \n%s\n", buff_req);
+	debug_high("\n***REQEST TO PARSE: \n%s\n", buff_req);
 
 	if ( (strncmp(buff_req, "GET ", 4) == 0) || (strncmp(buff_req, "HEAD ", 5) == 0) ) {
 		isget = true;
