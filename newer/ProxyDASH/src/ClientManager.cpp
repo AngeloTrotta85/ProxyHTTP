@@ -470,7 +470,7 @@ void ClientManager::manageTransferFromDestToClient(struct sockaddr_in *if_used) 
 				time(&end_t);
 				diff_t = difftime(end_t, start_t);
 				//if (diff_t < InterfacesManager::getInstance().timer_update) {
-				if (diff_t < 3) {
+				if (diff_t < 8) {
 					tryRead = true;
 				}
 			}
@@ -510,7 +510,7 @@ void ClientManager::manageTransferFromDestToClient(struct sockaddr_in *if_used) 
 			debug_high("connection closed by the server\n");
 		}
 		else {
-			perror("Error receiving from server while forwarding");
+			perror("manageTransferFromDestToClient: Error receiving from server while forwarding");
 		}
 
 	} while (n_recv > 0);
