@@ -276,15 +276,34 @@ bool ClientManager::manageRequest(void) {
 
 bool ClientManager::sendGETtoDest(struct sockaddr_in *if_to_bind, bool dummy_req) {
 	struct sockaddr_in host_addr;
+	struct sockaddr_in dummy_if_to_bind;
 
 	debug_high("[PID: %d] - BEGIN ClientManager::sendGETtoDest\n", getpid());
 
 	host_addr.sin_port = htons(rm.getServerPort());
 	host_addr.sin_family=AF_INET;
-	host_addr.sin_addr.s_addr = rm.getServerAddr();
+	//host_addr.sin_addr.s_addr = rm.getServerAddr();
+	if (strcmp(inet_ntoa(host_addr.sin_addr), "0.0.0.0") == 0){
+		inet_aton("143.205.176.132", &(host_addr.sin_addr));
+	}
+	else {
+		host_addr.sin_addr.s_addr = rm.getServerAddr();
+	}
+
 	
-	if (if_to_bind)
+	if (if_to_bind){
 		debug_high("Start sending the GET to the server using %s\n", inet_ntoa(if_to_bind->sin_addr));
+	}
+	else {
+		debug_high("[PID: %d] - DEBUG (making dummy address) ClientManager::sendGETtoDest\n", getpid());
+		dummy_if_to_bind.sin_family = AF_INET;
+		//if_to_use.sin_port=htons(0);
+		int portToUse = (rand()%1000) + 9000;
+		dummy_if_to_bind.sin_port = htons(portToUse);
+		dummy_if_to_bind.sin_addr.s_addr = INADDR_ANY;
+		if_to_bind = &dummy_if_to_bind;
+	}
+
 
 	sockfd_VideoServer = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP);
 	if (sockfd_VideoServer < 0) {
@@ -298,6 +317,7 @@ bool ClientManager::sendGETtoDest(struct sockaddr_in *if_to_bind, bool dummy_req
 		debug_high("[PID: %d] - DEBUG (before bind) ClientManager::sendGETtoDest\n", getpid());
 
 		if (if_to_bind != NULL) {
+			debug_high("[PID: %d] - DEBUG (really binding %s:%d) ClientManager::sendGETtoDest\n", getpid(), inet_ntoa(if_to_bind->sin_addr), (int)(ntohs(if_to_bind->sin_port)));
 			risBind = bind (sockfd_VideoServer, (struct sockaddr *)if_to_bind, sizeof(struct sockaddr_in));
 		}
 
@@ -307,7 +327,7 @@ bool ClientManager::sendGETtoDest(struct sockaddr_in *if_to_bind, bool dummy_req
 
 			if (connect(sockfd_VideoServer, (struct sockaddr*)&host_addr, sizeof(struct sockaddr)) < 0) {
 				perror("Error in connecting to remote server");
-				debug_high("[PID: %d] - END (false2) ClientManager::sendGETtoDest\n", getpid());
+				debug_high("[PID: %d] - END (err connecting to %s:%d) ClientManager::sendGETtoDest\n", getpid(), inet_ntoa(host_addr.sin_addr), (int)(ntohs(host_addr.sin_port)));
 				return false;
 			}
 			else {
@@ -335,7 +355,7 @@ bool ClientManager::sendGETtoDest(struct sockaddr_in *if_to_bind, bool dummy_req
 		}
 	}
 	
-	if (if_to_bind) {
+	if ((if_to_bind) && (if_to_bind != &dummy_if_to_bind)) {
 		debug_high("End sending the GET to the server using %s\n", inet_ntoa(if_to_bind->sin_addr));
 	}
 	else {

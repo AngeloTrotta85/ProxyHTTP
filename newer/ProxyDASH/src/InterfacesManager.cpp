@@ -252,7 +252,9 @@ void InterfacesManager::setTimerUpdate(int timer) {
 void InterfacesManager::chooseIF(struct sockaddr_in &if_to_use, std::list<struct sockaddr_in> &if_to_update) {
 
 	if_to_use.sin_family=AF_INET;
-	if_to_use.sin_port=htons(0);
+	//if_to_use.sin_port=htons(0);
+	int portToUse = (rand()%1000) + 9000;
+	if_to_use.sin_port=htons(portToUse);
 
 	// random choice
 	if (random_chioce) {
