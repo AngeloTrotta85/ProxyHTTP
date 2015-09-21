@@ -270,6 +270,10 @@ bool ClientManager::manageRequest(void) {
 		debug_low("Discarding non MPEGH-DASH requests due to the '-x' parameter\n");
 	}
 
+	if ((rm.isGET()) && (rm.isMPEGDASH_M4S()) && (StatManager::getInstance().actual_stats.reply_ok == false) && (if_to_use_act != NULL)) {
+		InterfacesManager::getInstance().updateInterfaceStats(if_to_use_act, 1, 1000000);
+	}
+
 	debug_high("[PID: %d] - END (true) ClientManager::manageRequest\n", getpid());
 	return true;
 }
@@ -338,12 +342,12 @@ bool ClientManager::sendGETtoDest(struct sockaddr_in *if_to_bind, bool dummy_req
 				tryRead = false;
 				ris_conn = connect(sockfd_VideoServer, (struct sockaddr*)&host_addr, sizeof(struct sockaddr));
 				if ((ris_conn < 0) && ((errno == ETIMEDOUT) || (errno == ENETUNREACH) || (errno == EINPROGRESS) || (errno == EALREADY))) {
-					usleep(100000);
+					usleep(200000);
 
 					time(&end_t);
 					diff_t = difftime(end_t, start_t);
 
-					if (diff_t < 3) {
+					if (diff_t < 5) {
 						tryRead = true;
 					}
 				}
