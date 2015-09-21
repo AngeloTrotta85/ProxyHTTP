@@ -248,6 +248,9 @@ void InterfacesManager::setRandomChoice(bool r) {
 void InterfacesManager::setTimerUpdate(int timer) {
 	timer_update = timer;
 }
+void InterfacesManager::setAlphaStdVar(double alpha) {
+	alpha_std = alpha;
+}
 
 void InterfacesManager::chooseIF(struct sockaddr_in &if_to_use, std::list<struct sockaddr_in> &if_to_update) {
 
@@ -357,7 +360,7 @@ void InterfacesManager::chooseIF(struct sockaddr_in &if_to_use, std::list<struct
 			if_thr_vector[if_idx].p_standardDev = if_thr_vector[if_idx].block_vector[if_thr_vector[if_idx].block_vector.size() - 1].standard_dev;
 			if_thr_vector[if_idx].p_mean = m_partial_sum / weight_sum;
 
-			if_thr_vector[if_idx].expected_thr = if_thr_vector[if_idx].p_mean - if_thr_vector[if_idx].p_standardDev;
+			if_thr_vector[if_idx].expected_thr = if_thr_vector[if_idx].p_mean - (if_thr_vector[if_idx].p_standardDev * alpha_std);
 			if (if_thr_vector[if_idx].expected_thr < 0) {
 				if_thr_vector[if_idx].expected_thr = 0;
 			}

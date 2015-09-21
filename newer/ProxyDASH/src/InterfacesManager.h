@@ -98,6 +98,7 @@ public:
 	void setUpdateFlag(bool updateFlag);
 	void setRandomChoice(bool r);
 	void setTimerUpdate(int timer);
+	void setAlphaStdVar(double alpha);
 
 	void checkInterfaces(std::list<std::string> &if2exclude);
 	void freeMemory(void);
@@ -116,6 +117,8 @@ private:
 	
 	bool flag_update;
 	bool random_chioce;
+
+	double alpha_std;
 
 public:
 	int timer_update;

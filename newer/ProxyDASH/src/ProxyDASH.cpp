@@ -60,6 +60,7 @@ void usage(char* progName)
       "[-t]       Timeout to update unused interfaces in seconds (default 10s)" << endl <<
       "[-d]       Use default packet of 10KB for statistical update on unused interfaces" << endl <<
       "[-u]       Execute updating on unused interfaces ['yes(default)' or 'no']" << endl <<
+      "[-a]       Set alpha parameter for standard weight [default 1 byte]" << endl <<
       "[-x]       Discard non MPEG-DASH requests" << endl <<
       "-p         The port number to listen" << endl;
 }
@@ -75,6 +76,7 @@ int main(int argc,char* argv[]) {
 	bool randomC = false;
 	bool ignore_nonDASH = false;
 	bool dumy_packet_stat = false;
+	double alphaStd = 1;
 	ClientManager cm;
 
 	/****************************************************************/
@@ -82,7 +84,7 @@ int main(int argc,char* argv[]) {
 	/****************************************************************/
 	opterr = 0;
 
-	while ((char_opt = getopt (argc, argv, "dxrhp:i:l:b:u:t:")) != -1) {
+	while ((char_opt = getopt (argc, argv, "dxrhp:i:l:b:u:t:a:")) != -1) {
 		char tmpstr[64];
 		char *pch;
 
@@ -109,6 +111,10 @@ int main(int argc,char* argv[]) {
 
 		case 'b':
 			byteUpdate = atoi(optarg);
+			break;
+
+		case 'a':
+			alphaStd = atof(optarg);
 			break;
 
 		case 't':
@@ -143,7 +149,7 @@ int main(int argc,char* argv[]) {
 			break;
 
 		case '?':
-			if ((optopt == 'p') || (optopt == 'i') || (optopt == 'l') || (optopt == 'u') || (optopt == 't') || (optopt == 'b')) {
+			if ((optopt == 'p') || (optopt == 'i') || (optopt == 'l') || (optopt == 'u') || (optopt == 't') || (optopt == 'a') || (optopt == 'b')) {
 				fprintf(stderr, "Option -%c requires an argument.\n", optopt);
 			}
 			else if (isprint (optopt)) {
@@ -218,6 +224,7 @@ int main(int argc,char* argv[]) {
 	InterfacesManager::getInstance().setUpdateFlag(statupdate);
 	InterfacesManager::getInstance().setRandomChoice(randomC);
 	InterfacesManager::getInstance().setTimerUpdate(timeUpdate);
+	InterfacesManager::getInstance().setAlphaStdVar(alphaStd);
 	InterfacesManager::getInstance().checkInterfaces(interface2exclude);
 	//InterfacesManager::getInstance().printInterfaces();
 	time(&lastInterfaceUpdate);
