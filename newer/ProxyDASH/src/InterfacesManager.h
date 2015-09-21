@@ -75,6 +75,7 @@ private:
 		interfaces_map = NULL;
 		interfaces_map_vector_size = 0;
 		timer_update = TIME_STAT_UPDATE;
+		alpha_std = 1;
 		
 		random_chioce = false;
 		flag_update = true;
