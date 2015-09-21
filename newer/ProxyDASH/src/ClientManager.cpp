@@ -551,7 +551,7 @@ void ClientManager::forkAndUpdateStats(struct sockaddr_in *addr_in) {
 		}
 		else {
 
-			InterfacesManager::getInstance().blockStatIF(addr_in);
+			//InterfacesManager::getInstance().blockStatIF(addr_in);
 
 			// set random seed
 			srand(getpid());
@@ -579,7 +579,7 @@ void ClientManager::forkAndUpdateStats(struct sockaddr_in *addr_in) {
 			InterfacesManager::getInstance().freeMemory();
 			StatManager::getInstance().freeMemory();
 
-			InterfacesManager::getInstance().freeStatIF(addr_in);
+			//InterfacesManager::getInstance().freeStatIF(addr_in);
 
 			// the child process will terminate now
 			_exit(EXIT_SUCCESS);
