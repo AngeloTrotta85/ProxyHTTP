@@ -479,3 +479,26 @@ bool InterfacesManager::isAlreadyInTest(struct sockaddr_in *addr_in) {
 	return ris;
 }
 
+void InterfacesManager::blockStatIF(struct sockaddr_in *addr_in) {
+	for (int if_idx = 0; if_idx < (int)interfaces_map_vector_size; if_idx++) {
+		if (interfaces_map [if_idx].addr_info == addr_in->sin_addr.s_addr) {
+
+			sem_wait(interfaces_map [if_idx].statUpdate_sem);
+
+			break;
+		}
+	}
+
+}
+
+void InterfacesManager::freeStatIF(struct sockaddr_in *addr_in) {
+	for (int if_idx = 0; if_idx < (int)interfaces_map_vector_size; if_idx++) {
+		if (interfaces_map [if_idx].addr_info == addr_in->sin_addr.s_addr) {
+
+			sem_post(interfaces_map [if_idx].statUpdate_sem);
+
+			break;
+		}
+	}
+}
+

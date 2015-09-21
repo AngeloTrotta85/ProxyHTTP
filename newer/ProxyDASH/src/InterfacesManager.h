@@ -110,6 +110,9 @@ public:
 
 	bool isAlreadyInTest(struct sockaddr_in *addr_in);
 
+	void blockStatIF(struct sockaddr_in *addr_in);
+	void freeStatIF(struct sockaddr_in *addr_in);
+
 private:
 	interface_info *interfaces_map;
 	unsigned int interfaces_map_vector_size;
