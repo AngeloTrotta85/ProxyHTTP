@@ -424,7 +424,7 @@ void InterfacesManager::chooseIF(struct sockaddr_in &if_to_use, std::list<struct
 	// check il some of the other devices should be updated
 	if_to_update.clear();
 	
-	if (flag_update) {
+	if ((flag_update) && (!random_chioce)) {
 
 		struct timeval timeNOW;
 		gettimeofday(&timeNOW, NULL);
@@ -444,7 +444,10 @@ void InterfacesManager::chooseIF(struct sockaddr_in &if_to_use, std::list<struct
 				if (if_to_use.sin_addr.s_addr != interfaces_map [if_idx].addr_info) {
 					struct sockaddr_in toADD;
 					toADD.sin_family=AF_INET;
-					toADD.sin_port=htons(0);
+
+					int portToUse = (rand()%1000) + 9000;
+					//toADD.sin_port=htons(0);
+					toADD.sin_port=htons(portToUse);
 					toADD.sin_addr.s_addr = interfaces_map [if_idx].addr_info;
 
 					//debug_medium("IF %s need to be updated\n", inet_ntoa(tt));
