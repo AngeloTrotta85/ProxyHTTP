@@ -402,7 +402,11 @@ void ClientManager::manageTransferOnStatUpdate(struct sockaddr_in *if_used) {
 
 				time(&end_t);
 				diff_t = difftime(end_t, start_t);
-				if (diff_t < InterfacesManager::getInstance().timer_update) {
+				double interval_update = InterfacesManager::getInstance().timer_update;
+				if (interval_update < 8) {
+					interval_update = 8;
+				}
+				if (diff_t < interval_update) {
 					tryRead = true;
 				}
 
