@@ -325,7 +325,32 @@ bool ClientManager::sendGETtoDest(struct sockaddr_in *if_to_bind, bool dummy_req
 
 		if (risBind == 0) {
 
-			if (connect(sockfd_VideoServer, (struct sockaddr*)&host_addr, sizeof(struct sockaddr)) < 0) {
+			int x = fcntl(sockfd_VideoServer, F_GETFL,0);              // Get socket flags
+			fcntl(sockfd_VideoServer, F_SETFL, sockfd_VideoServer | O_NONBLOCK);   // Add non-blocking flag
+
+			int ris_conn;
+			bool tryRead = true;
+			time_t start_t, end_t;
+			double diff_t;
+
+			time(&start_t);
+			while(tryRead) {
+				tryRead = false;
+				ris_conn = connect(sockfd_VideoServer, (struct sockaddr*)&host_addr, sizeof(struct sockaddr));
+				if ((ris_conn < 0) && ((errno == ETIMEDOUT) || (errno == ENETUNREACH) || (errno == EINPROGRESS) || (errno == EALREADY))) {
+					usleep(100000);
+
+					time(&end_t);
+					diff_t = difftime(end_t, start_t);
+
+					if (diff_t < 3) {
+						tryRead = true;
+					}
+				}
+			}
+
+			//if (connect(sockfd_VideoServer, (struct sockaddr*)&host_addr, sizeof(struct sockaddr)) < 0) {à
+			if (ris_conn < 0) {
 				perror("Error in connecting to remote server");
 				debug_high("[PID: %d] - END (err connecting to %s:%d) ClientManager::sendGETtoDest\n", getpid(), inet_ntoa(host_addr.sin_addr), (int)(ntohs(host_addr.sin_port)));
 				return false;
