@@ -20,10 +20,10 @@
 #define NO_DEBUG_LEVEL		0
 
 #ifndef DEBUG_LEVEL
-//#define DEBUG_LEVEL NO_DEBUG_LEVEL
+#define DEBUG_LEVEL NO_DEBUG_LEVEL
 //#define DEBUG_LEVEL MIN_DEBUG_LEVEL
 //#define DEBUG_LEVEL MEDIUM_DEBUG_LEVEL
-#define DEBUG_LEVEL MAX_DEBUG_LEVEL
+//#define DEBUG_LEVEL MAX_DEBUG_LEVEL
 #endif
 
 
@@ -35,21 +35,21 @@
 
 #elif  DEBUG_LEVEL==MIN_DEBUG_LEVEL
 
-#define debug_low(...) printf (__VA_ARGS__); fflush(stdout);
+#define debug_low(...) printf (__VA_ARGS__);
 #define debug_medium(...)
 #define debug_high(...)
 
 #elif  DEBUG_LEVEL==MEDIUM_DEBUG_LEVEL
 
-#define debug_low(...) printf (__VA_ARGS__); fflush(stdout);
-#define debug_medium(...) printf (__VA_ARGS__); fflush(stdout);
+#define debug_low(...) printf (__VA_ARGS__);
+#define debug_medium(...) printf (__VA_ARGS__);
 #define debug_high(...)
 
 #else
 
-#define debug_low(...) printf (__VA_ARGS__); fflush(stdout);
-#define debug_medium(...) printf (__VA_ARGS__); fflush(stdout);
-#define debug_high(...) printf (__VA_ARGS__); fflush(stdout);
+#define debug_low(...) printf (__VA_ARGS__);
+#define debug_medium(...) printf (__VA_ARGS__);
+#define debug_high(...) printf (__VA_ARGS__);
 
 #endif
 

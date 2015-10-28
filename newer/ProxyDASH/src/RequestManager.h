@@ -29,11 +29,9 @@
 #include <vector>
 #include <map>
 #include <list>
+#include <fstream>
 
 #include "Miscellaneous.h"
-
-//#define DUMMY_REQ "GET /ftp/datasets/DASHDataset2014/BigBuckBunny/1sec/bunny_91917bps/BigBuckBunny_1s1.m4s HTTP/1.1\nHost: www-itec.uni-klu.ac.at\nConnection: close\n\n"
-#define DUMMY_REQ "GET /ftp/datasets/DASHDataset2014/BigBuckBunny/1sec/bunny_270316bps/BigBuckBunny_1s3.m4s HTTP/1.1\nHost: www-itec.uni-klu.ac.at\nConnection: close\n\n"
 
 class RequestManager {
 public:
@@ -51,10 +49,12 @@ public:
 	bool load_req(char *str_req, int size_str);
 
 	bool isLoaded(void);
-	bool isConnectReq(void);
+
 	bool isGET(void);
 	bool isMPEGDASHreq(void);
 	bool isMPEGDASH_M4S(void);
+	bool isManifest(void);
+	bool isInit(void);
 
 	const char* getHostName() const {
 		return host_name;
@@ -70,10 +70,6 @@ public:
 
 	const char* getCopyOfGET() const {
 		return buff_req;
-	}
-
-	const char* getDummyGET() const {
-		return DUMMY_REQ;
 	}
 
 	in_addr_t getServerAddr() const {
@@ -95,7 +91,8 @@ private:
 	char buff_req[4096];
 
 	std::map <std::string, std::string> req_fields;
-
+	std::string s11;
+	std::string s12;
 	// important field
 	char host_name[64];
 	char path_name[256];
@@ -104,7 +101,6 @@ private:
 
 	bool loaded;
 	bool isget;
-	bool isConnect;
 	MPEG_DASH_TYPE mpeg_dash;
 };
 

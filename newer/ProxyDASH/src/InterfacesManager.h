@@ -34,6 +34,7 @@
 #include <fcntl.h>          /* O_CREAT, O_EXEC          */
 
 #include "Miscellaneous.h"
+#include "VideoManager.h"
 
 #define BLOCK_TOTAL_DIMENSION	20
 #define BLOCK_SIZE				5
@@ -62,20 +63,20 @@ public:
 		unsigned long int time;
 		struct timeval timestamp;
 	};
-
 	struct interface_info {
 		char name[16];
 		in_addr_t addr_info;
 		sem_t *statUpdate_sem;
+		bool used;
 		struct stat_vector stats[BLOCK_TOTAL_DIMENSION];
 	};
+	VideoManager thread;
 
 private:
 	InterfacesManager() {
 		interfaces_map = NULL;
 		interfaces_map_vector_size = 0;
 		timer_update = TIME_STAT_UPDATE;
-		alpha_std = 1;
 		
 		random_chioce = false;
 		flag_update = true;
@@ -99,7 +100,9 @@ public:
 	void setUpdateFlag(bool updateFlag);
 	void setRandomChoice(bool r);
 	void setTimerUpdate(int timer);
-	void setAlphaStdVar(double alpha);
+
+	void setUsed(in_addr_t addr_info);
+	void setFree(in_addr_t addr_info);
 
 	void checkInterfaces(std::list<std::string> &if2exclude);
 	void freeMemory(void);
@@ -108,10 +111,11 @@ public:
 
 	void chooseIF(struct sockaddr_in &if_to_use, std::list<struct sockaddr_in> &if_to_update);
 
-	bool isAlreadyInTest(struct sockaddr_in *addr_in);
+	void chooseIFMain(struct sockaddr_in &if_to_use_main, std::list<struct sockaddr_in> &if_use);
 
-	void blockStatIF(struct sockaddr_in *addr_in);
-	void freeStatIF(struct sockaddr_in *addr_in);
+	void fullInterfaceList(struct sockaddr_in *if_to_use, std::list<struct sockaddr_in> &if_to_update );
+
+	bool isAlreadyInTest(struct sockaddr_in *addr_in);
 
 private:
 	interface_info *interfaces_map;
@@ -121,11 +125,8 @@ private:
 	
 	bool flag_update;
 	bool random_chioce;
-
-	double alpha_std;
-
-public:
 	int timer_update;
+
 };
 
 #endif /* INTERFACESMANAGER_H_ */
