@@ -28,7 +28,9 @@
 #include <iostream>
 #include <vector>
 #include <list>
+#include <fstream>
 
+#include "VideoManager.h"
 #include "RequestManager.h"
 #include "Miscellaneous.h"
 
@@ -46,17 +48,16 @@ public:
 
 	void setByteStat(int byteS);
 	void setDiscardFlag(bool discard);
-	void setDummyPktStat(bool dummy_stat);
-
+	void setAlgoOptions(char algo,int offset,char* quality);
 private:
 
 	bool getRequestFromClient(void);
 	bool manageRequest(void);
 	void forkAndUpdateStats(struct sockaddr_in *addr_in);
-	bool sendGETtoDest(struct sockaddr_in *if_to_bind, bool dummy_req);
+	bool sendGETtoDest(struct sockaddr_in *if_to_bind);
 	void manageTransferFromDestToClient(struct sockaddr_in *if_used);
 	void manageTransferOnStatUpdate(struct sockaddr_in *if_used);
-
+	void initVideoRequest();
 private:
 	int sockfd_VideoClient;
 	int new_sockfd_VideoClient;
@@ -65,10 +66,11 @@ private:
 
 	int byte_update;
 	bool discard_MPEGDASH;
-
-	bool dummy_pkt_stat;
-
+	char algo;
+	char* quality;
+	int offset;
 	char buffer[16384];
+
 
 	RequestManager rm;
 };

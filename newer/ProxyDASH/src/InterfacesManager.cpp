@@ -193,9 +193,6 @@ void InterfacesManager::updateInterfaceStats (struct sockaddr_in *if_used, int p
 		//get semaphore
 		sem_wait(sem_estimator);
 
-		debug_medium("[%d] ----- Updating interface %s STATS: %u byte in %lld usec\n",
-				getpid(), inet_ntoa(if_used->sin_addr), pktSize, time_usec);
-
 		for (u_int32_t j = 0; j < interfaces_map_vector_size; j++) {
 
 			if (interfaces_map[j].addr_info == if_used->sin_addr.s_addr){
@@ -248,16 +245,11 @@ void InterfacesManager::setRandomChoice(bool r) {
 void InterfacesManager::setTimerUpdate(int timer) {
 	timer_update = timer;
 }
-void InterfacesManager::setAlphaStdVar(double alpha) {
-	alpha_std = alpha;
-}
 
 void InterfacesManager::chooseIF(struct sockaddr_in &if_to_use, std::list<struct sockaddr_in> &if_to_update) {
 
 	if_to_use.sin_family=AF_INET;
-	//if_to_use.sin_port=htons(0);
-	int portToUse = (rand()%1000) + 9000;
-	if_to_use.sin_port=htons(portToUse);
+	if_to_use.sin_port=htons(0);
 
 	// random choice
 	if (random_chioce) {
@@ -360,7 +352,7 @@ void InterfacesManager::chooseIF(struct sockaddr_in &if_to_use, std::list<struct
 			if_thr_vector[if_idx].p_standardDev = if_thr_vector[if_idx].block_vector[if_thr_vector[if_idx].block_vector.size() - 1].standard_dev;
 			if_thr_vector[if_idx].p_mean = m_partial_sum / weight_sum;
 
-			if_thr_vector[if_idx].expected_thr = if_thr_vector[if_idx].p_mean - (if_thr_vector[if_idx].p_standardDev * alpha_std);
+			if_thr_vector[if_idx].expected_thr = if_thr_vector[if_idx].p_mean - if_thr_vector[if_idx].p_standardDev;
 			if (if_thr_vector[if_idx].expected_thr < 0) {
 				if_thr_vector[if_idx].expected_thr = 0;
 			}
@@ -424,7 +416,7 @@ void InterfacesManager::chooseIF(struct sockaddr_in &if_to_use, std::list<struct
 	// check il some of the other devices should be updated
 	if_to_update.clear();
 	
-	if ((flag_update) && (!random_chioce)) {
+	if (flag_update) {
 
 		struct timeval timeNOW;
 		gettimeofday(&timeNOW, NULL);
@@ -444,10 +436,7 @@ void InterfacesManager::chooseIF(struct sockaddr_in &if_to_use, std::list<struct
 				if (if_to_use.sin_addr.s_addr != interfaces_map [if_idx].addr_info) {
 					struct sockaddr_in toADD;
 					toADD.sin_family=AF_INET;
-
-					int portToUse = (rand()%1000) + 9000;
-					//toADD.sin_port=htons(0);
-					toADD.sin_port=htons(portToUse);
+					toADD.sin_port=htons(0);
 					toADD.sin_addr.s_addr = interfaces_map [if_idx].addr_info;
 
 					//debug_medium("IF %s need to be updated\n", inet_ntoa(tt));
@@ -479,26 +468,179 @@ bool InterfacesManager::isAlreadyInTest(struct sockaddr_in *addr_in) {
 	return ris;
 }
 
-void InterfacesManager::blockStatIF(struct sockaddr_in *addr_in) {
+void InterfacesManager::fullInterfaceList(struct sockaddr_in *if_to_use, std::list<struct sockaddr_in> &if_to_update ) {
+	
 	for (int if_idx = 0; if_idx < (int)interfaces_map_vector_size; if_idx++) {
-		if (interfaces_map [if_idx].addr_info == addr_in->sin_addr.s_addr) {
+		// controllo che non sia quello scelto per inviare il pacchetto su...
+		if (if_to_use->sin_addr.s_addr != interfaces_map [if_idx].addr_info) {
+			struct sockaddr_in toADD;
+			toADD.sin_family=AF_INET;
+			toADD.sin_port=htons(0);
+			toADD.sin_addr.s_addr = interfaces_map [if_idx].addr_info;
 
-			sem_wait(interfaces_map [if_idx].statUpdate_sem);
+			if_to_update.push_back(toADD);
+		}	
+	}
+	
+}
 
-			break;
+void InterfacesManager::setUsed(in_addr_t addr_info) {
+
+	for (int if_idx = 0; if_idx < (int)interfaces_map_vector_size; if_idx++) {
+		// controllo che non sia quello scelto per inviare il pacchetto su...
+		if (addr_info == interfaces_map [if_idx].addr_info) {
+			 interfaces_map [if_idx].used = true;
 		}
 	}
 
 }
 
-void InterfacesManager::freeStatIF(struct sockaddr_in *addr_in) {
+void InterfacesManager::setFree(in_addr_t addr_info) {
+
 	for (int if_idx = 0; if_idx < (int)interfaces_map_vector_size; if_idx++) {
-		if (interfaces_map [if_idx].addr_info == addr_in->sin_addr.s_addr) {
-
-			sem_post(interfaces_map [if_idx].statUpdate_sem);
-
-			break;
+		// controllo che non sia quello scelto per inviare il pacchetto su...
+		if (addr_info == interfaces_map [if_idx].addr_info) {
+			 interfaces_map [if_idx].used = false;
 		}
 	}
+
+}
+void InterfacesManager::chooseIFMain(struct sockaddr_in &if_to_use_main, std::list<struct sockaddr_in> &if_to_use){
+	if_to_use_main.sin_family=AF_INET;
+	if_to_use_main.sin_port=htons(0);
+
+	int block_size = BLOCK_SIZE;
+
+	std::vector< interface_stat_t > if_thr_vector;
+
+	if_thr_vector.resize (interfaces_map_vector_size);
+
+	for (int if_idx = 0; if_idx < (int)if_thr_vector.size(); if_idx++) {
+
+		//if_thr_vector[if_idx].block_vector.resize(PROTOCOL_N_VAL/BLOCK_SIZE);
+		if_thr_vector[if_idx].block_vector.resize(BLOCK_NUMBER);
+		if_thr_vector[if_idx].filled_block = 0;
+		if_thr_vector[if_idx].addr_info.s_addr = interfaces_map[if_idx].addr_info;
+		strncpy(if_thr_vector[if_idx].if_name, interfaces_map[if_idx].name, sizeof (if_thr_vector[if_idx].if_name));
+
+		for (int block_idx = 0; block_idx < (int)if_thr_vector[if_idx].block_vector.size(); block_idx++) {
+			//double sumByte = 0;
+			//double sumTime = 0;
+			double sumThr = 0;
+			int count_thr = 0;
+
+			for (int i = 0; i < block_size; i++) {
+				int j_idx = (block_idx * block_size) + i;
+
+				if (interfaces_map[if_idx].stats[j_idx].size > 0) {
+					//if (glob_var[matrix_idx(if_idx, SIZE_VECTOR, j_idx)] > 0) {
+					//sumByte += glob_var[matrix_idx(if_idx, SIZE_VECTOR, j_idx)];
+					//sumTime += glob_var[matrix_idx(if_idx, TIME_VECTOR, j_idx)];
+					sumThr += (((double) interfaces_map[if_idx].stats[j_idx].size) / ((double) interfaces_map[if_idx].stats[j_idx].time)) * (1000000.0 / 1024.0);
+					//sumThr += (((double) glob_var[matrix_idx(if_idx, SIZE_VECTOR, j_idx)]) / ((double) glob_var[matrix_idx(if_idx, TIME_VECTOR, j_idx)])) * (1000000.0 / 1024.0);
+					count_thr++;
+
+				}
+			}
+
+			if_thr_vector[if_idx].block_vector[block_idx].mean = 0;
+			if (count_thr > 0) {
+				//if_thr_vector[if_idx].block_vector[block_idx].mean =
+				//		(sumByte / sumTime) * (1000000.0 / 1024.0);		// convert to kB/s
+				if_thr_vector[if_idx].block_vector[block_idx].mean = sumThr / ((double) count_thr);
+
+				if_thr_vector[if_idx].filled_block++;
+			}
+
+			double sumVariance = 0;
+			int num_block_ok = 0;
+			for (int i = 0; i < block_size; i++) {
+
+				int j_idx = (block_idx * block_size) + i;
+
+				if (interfaces_map[if_idx].stats[j_idx].time > 0) {
+					//if (glob_var[matrix_idx(if_idx, TIME_VECTOR, j_idx)] > 0) {
+					double thr_act = (((double) interfaces_map[if_idx].stats[j_idx].size) /
+							((double) interfaces_map[if_idx].stats[j_idx].time)) * (1000000.0 / 1024.0);
+					//double thr_act = (((double) glob_var[matrix_idx(if_idx, SIZE_VECTOR, j_idx)]) /
+					//		((double) glob_var[matrix_idx(if_idx, TIME_VECTOR, j_idx)])) * (1000000.0 / 1024.0);
+
+					sumVariance += pow (thr_act - if_thr_vector[if_idx].block_vector[block_idx].mean, 2);
+
+					num_block_ok++;
+				}
+			}
+
+			if (num_block_ok > 1) {
+				if_thr_vector[if_idx].block_vector[block_idx].variance = sumVariance / ((double) (num_block_ok - 1));
+				if_thr_vector[if_idx].block_vector[block_idx].standard_dev = sqrt (if_thr_vector[if_idx].block_vector[block_idx].variance);
+			}
+			else {
+				if_thr_vector[if_idx].block_vector[block_idx].variance = 0;
+				if_thr_vector[if_idx].block_vector[block_idx].standard_dev = 0;
+			}
+		}
+
+	}
+
+	// calculate P
+	for (int if_idx = 0; if_idx < (int)if_thr_vector.size(); if_idx++) {
+		double sd_partial_sum = 0;
+		double m_partial_sum = 0;
+		double weight_sum = 0;
+
+		for (int block_idx = 0; block_idx < (int)if_thr_vector[if_idx].block_vector.size(); block_idx++) {
+
+			if (if_thr_vector[if_idx].block_vector[block_idx].mean > 0) {
+				double act_weight = ((double) (block_idx + 1)) / ((double) if_thr_vector[if_idx].block_vector.size());
+
+				sd_partial_sum += act_weight * if_thr_vector[if_idx].block_vector[block_idx].standard_dev;
+				m_partial_sum += act_weight * if_thr_vector[if_idx].block_vector[block_idx].mean;
+				weight_sum += act_weight;
+			}
+		}
+
+		//if_thr_vector[if_idx].p_standardDev = sd_partial_sum / weight_sum;
+		if_thr_vector[if_idx].p_standardDev = if_thr_vector[if_idx].block_vector[if_thr_vector[if_idx].block_vector.size() - 1].standard_dev;
+		if_thr_vector[if_idx].p_mean = m_partial_sum / weight_sum;
+
+		if_thr_vector[if_idx].expected_thr = if_thr_vector[if_idx].p_mean - if_thr_vector[if_idx].p_standardDev;
+		if (if_thr_vector[if_idx].expected_thr < 0) {
+			if_thr_vector[if_idx].expected_thr = 0;
+		}
+	}
+
+	// calculate the best interface
+	bool enaught_info = true;
+
+
+	//idx_ris = rand() % if_vector.size();
+	if_to_use_main.sin_addr.s_addr=interfaces_map [rand() % interfaces_map_vector_size].addr_info;
+	if (enaught_info) {
+		double best_dr = -1;
+		for (int if_idx = 0; if_idx < (int)if_thr_vector.size(); if_idx++) {
+			if (if_thr_vector[if_idx].expected_thr > best_dr && !interfaces_map [if_idx].used) {
+				best_dr = if_thr_vector[if_idx].expected_thr;
+				//idx_ris = if_idx;
+				if_to_use_main.sin_addr.s_addr=interfaces_map [if_idx].addr_info;
+			}
+		}
+	}
+
+	// check if some of the other devices are free
+	if_to_use.clear();
+
+	for (int if_idx = 0; if_idx < (int)interfaces_map_vector_size; if_idx++) {
+		if (if_to_use_main.sin_addr.s_addr != interfaces_map [if_idx].addr_info &&  !interfaces_map [if_idx].used) {
+			struct sockaddr_in toADD;
+			toADD.sin_family=AF_INET;
+			toADD.sin_port=htons(0);
+			toADD.sin_addr.s_addr = interfaces_map [if_idx].addr_info;
+
+			if_to_use.push_back(toADD);
+		}
+
+	}
+
 }
 
