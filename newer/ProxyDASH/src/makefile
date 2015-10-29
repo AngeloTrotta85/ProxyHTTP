@@ -32,7 +32,7 @@ src \
 
 USER_OBJS :=
 
-LIBS := -lpthread
+LIBS := -lpthread 
 
 ################################################################################
 # include src/subdir.mk
@@ -40,32 +40,48 @@ LIBS := -lpthread
 
 # Add inputs and outputs from these tool invocations to the build variables 
 CPP_SRCS += \
+./pugixml.cpp \
+./TransferManager.cpp \
+./VideoInfo.cpp \
+./VideoManager.cpp \
 ./ClientManager.cpp \
 ./InterfacesManager.cpp \
 ./ProxyDASH.cpp \
 ./RequestManager.cpp \
+./ChoiceAlgorithms.cpp \
 ./StatManager.cpp 
 
 OBJS += \
+./build/pugixml.o \
+./build/TransferManager.o \
+./build/VideoInfo.o \
+./build/VideoManager.o \
 ./build/ClientManager.o \
 ./build/InterfacesManager.o \
 ./build/ProxyDASH.o \
 ./build/RequestManager.o \
+./build/ChoiceAlgorithms.o \
 ./build/StatManager.o 
 
 CPP_DEPS += \
+./build/pugixml.d \
+./build/TransferManager.d \
+./build/VideoInfo.d \
+./build/VideoManager.d \
 ./build/ClientManager.d \
 ./build/InterfacesManager.d \
 ./build/ProxyDASH.d \
 ./build/RequestManager.d \
+./build/ChoiceAlgorithms.d \
 ./build/StatManager.d 
+
 
 
 # Each subdirectory must supply rules for building sources it contributes
 ./build/%.o: ./%.cpp Miscellaneous.h
 	@echo 'Building file: $<'
-	@echo 'Invoking: Cross G++ Compiler'
-	g++ -O3 -Wall -c -fmessage-length=0 -MMD -MP -MF"$(@:%.o=%.d)" -MT"$(@:%.o=%.d)" -o "$@" "$<"
+	@echo 'Invo ing: Cross G++ Compiler'
+	g++ -O3 -Wall -std=c++11 -c -fmessage-length=0 -MMD -MP -MF"$(@:%.o=%.d)" -MT"$(@:%.o=%.d)" -o "$@" "$<"
 	@echo 'Finished building: $<'
 	@echo ' '
 	

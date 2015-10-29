@@ -55,28 +55,30 @@ void usage(char* progName)
       "-h         Print this help" << endl <<
       "-i         Interfaces to exclude (separated by ,)" << endl <<
       "-l         Log file path-name" << endl <<
+      "-a         Algorithm for segment choice" << endl <<
+      "[-o]       Offset for choice algorithm (default 5)" << endl <<
+      "[-q]       Quality for custom segment (default last requested)" << endl <<
       "[-r]       Random choice of out-interface" << endl <<
       "[-b]       Byte to update interfaces statistics (default 250000 byte)" << endl <<
       "[-t]       Timeout to update unused interfaces in seconds (default 10s)" << endl <<
-      "[-d]       Use default packet of 10KB for statistical update on unused interfaces" << endl <<
       "[-u]       Execute updating on unused interfaces ['yes(default)' or 'no']" << endl <<
-      "[-a]       Set alpha parameter for standard weight [default 1 byte]" << endl <<
       "[-x]       Discard non MPEG-DASH requests" << endl <<
       "-p         The port number to listen" << endl;
 }
 
 int main(int argc,char* argv[]) {
 	char *log_file = NULL;
+	char *quality = NULL;
+	char algo = 'r';
 	std::list<std::string> interface2exclude;
 	int listening_port = 0;
 	int char_opt;
 	int timeUpdate = TIME_STAT_UPDATE;
 	int byteUpdate = BLOCK_SIZE_STATS_BYTE;
+	int offset = 5;
 	bool statupdate = true;
 	bool randomC = false;
 	bool ignore_nonDASH = false;
-	bool dumy_packet_stat = false;
-	double alphaStd = 1;
 	ClientManager cm;
 
 	/****************************************************************/
@@ -84,7 +86,7 @@ int main(int argc,char* argv[]) {
 	/****************************************************************/
 	opterr = 0;
 
-	while ((char_opt = getopt (argc, argv, "dxrhp:i:l:b:u:t:a:")) != -1) {
+	while ((char_opt = getopt (argc, argv, "xrhp:i:l:b:u:t:a:q:o:")) != -1) {
 		char tmpstr[64];
 		char *pch;
 
@@ -101,20 +103,12 @@ int main(int argc,char* argv[]) {
 			ignore_nonDASH = true;
 			break;
 
-		case 'd':
-			dumy_packet_stat = true;
-			break;
-
 		case 'p':
 			listening_port = atoi(optarg);
 			break;
 
 		case 'b':
 			byteUpdate = atoi(optarg);
-			break;
-
-		case 'a':
-			alphaStd = atof(optarg);
 			break;
 
 		case 't':
@@ -148,8 +142,21 @@ int main(int argc,char* argv[]) {
 			log_file = optarg;
 			break;
 
+		case 'a':
+			algo = *optarg;
+			printf("-a options %c\n",algo);
+			break;
+
+		case 'o':
+			offset = atoi(optarg);
+			break;
+
+		case 'q':
+			quality = optarg;
+			break;
+
 		case '?':
-			if ((optopt == 'p') || (optopt == 'i') || (optopt == 'l') || (optopt == 'u') || (optopt == 't') || (optopt == 'a') || (optopt == 'b')) {
+			if ((optopt == 'p') || (optopt == 'i') || (optopt == 'l') || (optopt == 'u') || (optopt == 't') || (optopt == 'b')) {
 				fprintf(stderr, "Option -%c requires an argument.\n", optopt);
 			}
 			else if (isprint (optopt)) {
@@ -224,7 +231,6 @@ int main(int argc,char* argv[]) {
 	InterfacesManager::getInstance().setUpdateFlag(statupdate);
 	InterfacesManager::getInstance().setRandomChoice(randomC);
 	InterfacesManager::getInstance().setTimerUpdate(timeUpdate);
-	InterfacesManager::getInstance().setAlphaStdVar(alphaStd);
 	InterfacesManager::getInstance().checkInterfaces(interface2exclude);
 	//InterfacesManager::getInstance().printInterfaces();
 	time(&lastInterfaceUpdate);
@@ -232,8 +238,7 @@ int main(int argc,char* argv[]) {
 	// init the ClientManager
 	cm.setByteStat(byteUpdate);
 	cm.setDiscardFlag(ignore_nonDASH);
-	cm.setDummyPktStat(dumy_packet_stat);
-
+	cm.setAlgoOptions(algo, offset, quality);
 	//listening on port
 	if (cm.startListeningForClient(listening_port)) {
 
@@ -255,7 +260,7 @@ int main(int argc,char* argv[]) {
 				cm.forkAndManageClient();	// only the parent process exit from this call
 
 				// close the new socket
-				close(new_client_socket);
+				//close(new_client_socket);
 			}
 			else {
 				perror("accept error");
