@@ -2,8 +2,9 @@ library(shiny)
 
 # Define server logic required to draw a histogram
 shinyServer(
-	function(input, output) {
-		camps <- list.files("data/", pattern = "*parsed*")
+	function(input, output, session) {
+		autoInvalidate <- reactiveTimer(1000, session)
+		camps <- list.files("data/", pattern = "*")
 		output$campSelector <- renderUI({
 			#TODO Would be nice to give the possibility to plot more files on the same chart
 			# This would involve a for loop through the different files
@@ -12,6 +13,7 @@ shinyServer(
 
 		dataf <- as.data.frame(read.table(paste("data/",camps[1],sep="")))
 		dataInput <- reactive({
+			autoInvalidate()
 #			read.table("data/testProvaOK.log-BigBuckBunny_2sec_parsed")
 			#TODO Add names to the columns
 			read.table(paste("data/",input$vaar,sep = ""), 
@@ -22,6 +24,8 @@ shinyServer(
 		})
 
 		selectedData <- reactive({
+			autoInvalidate()
+			print("AAAA")
 #			print(input$xcol)
 #			print(input$ycol)
 #			print(XX)
@@ -44,12 +48,15 @@ shinyServer(
     		summary(dataset)
   		})
 
-  		#output$view <- renderTable({
+  		output$view <- renderTable({
     		#head(selectedData(), n = input$obs)
-    	#	head(selectedData())
-  		#})
+    		head(selectedData())
+  		})
 		
 		output$chart <- renderPlot({
+			autoInvalidate()
+			print("BBBB")
+#			print(selectedData())
 			plot(selectedData(), type="l", col="red", lwd = 10)
 		})
 })
