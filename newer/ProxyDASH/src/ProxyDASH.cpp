@@ -58,6 +58,7 @@ void usage(char* progName)
       "[-r]       Random choice of out-interface" << endl <<
       "[-b]       Byte to update interfaces statistics (default 250000 byte)" << endl <<
       "[-t]       Timeout to update unused interfaces in seconds (default 10s)" << endl <<
+      "[-d]       Use default packet of 10KB for statistical update on unused interfaces" << endl <<
       "[-u]       Execute updating on unused interfaces ['yes(default)' or 'no']" << endl <<
       "[-x]       Discard non MPEG-DASH requests" << endl <<
       "-p         The port number to listen" << endl;
@@ -73,6 +74,7 @@ int main(int argc,char* argv[]) {
 	bool statupdate = true;
 	bool randomC = false;
 	bool ignore_nonDASH = false;
+	bool dumy_packet_stat = false;
 	ClientManager cm;
 
 	/****************************************************************/
@@ -80,7 +82,7 @@ int main(int argc,char* argv[]) {
 	/****************************************************************/
 	opterr = 0;
 
-	while ((char_opt = getopt (argc, argv, "xrhp:i:l:b:u:t:")) != -1) {
+	while ((char_opt = getopt (argc, argv, "dxrhp:i:l:b:u:t:")) != -1) {
 		char tmpstr[64];
 		char *pch;
 
@@ -95,6 +97,10 @@ int main(int argc,char* argv[]) {
 
 		case 'x':
 			ignore_nonDASH = true;
+			break;
+
+		case 'd':
+			dumy_packet_stat = true;
 			break;
 
 		case 'p':
@@ -219,6 +225,7 @@ int main(int argc,char* argv[]) {
 	// init the ClientManager
 	cm.setByteStat(byteUpdate);
 	cm.setDiscardFlag(ignore_nonDASH);
+	cm.setDummyPktStat(dumy_packet_stat);
 
 	//listening on port
 	if (cm.startListeningForClient(listening_port)) {

@@ -46,13 +46,14 @@ public:
 
 	void setByteStat(int byteS);
 	void setDiscardFlag(bool discard);
+	void setDummyPktStat(bool dummy_stat);
 
 private:
 
 	bool getRequestFromClient(void);
 	bool manageRequest(void);
 	void forkAndUpdateStats(struct sockaddr_in *addr_in);
-	bool sendGETtoDest(struct sockaddr_in *if_to_bind);
+	bool sendGETtoDest(struct sockaddr_in *if_to_bind, bool dummy_req);
 	void manageTransferFromDestToClient(struct sockaddr_in *if_used);
 	void manageTransferOnStatUpdate(struct sockaddr_in *if_used);
 
@@ -64,6 +65,8 @@ private:
 
 	int byte_update;
 	bool discard_MPEGDASH;
+
+	bool dummy_pkt_stat;
 
 	char buffer[16384];
 
