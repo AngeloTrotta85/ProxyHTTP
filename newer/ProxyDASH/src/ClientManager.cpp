@@ -270,21 +270,44 @@ bool ClientManager::manageRequest(void) {
 		debug_low("Discarding non MPEGH-DASH requests due to the '-x' parameter\n");
 	}
 
+	if ((rm.isGET()) && (rm.isMPEGDASH_M4S()) && (StatManager::getInstance().actual_stats.reply_ok == false) && (if_to_use_act != NULL)) {
+		InterfacesManager::getInstance().updateInterfaceStats(if_to_use_act, 1, 1000000);
+	}
+
 	debug_high("[PID: %d] - END (true) ClientManager::manageRequest\n", getpid());
 	return true;
 }
 
 bool ClientManager::sendGETtoDest(struct sockaddr_in *if_to_bind, bool dummy_req) {
 	struct sockaddr_in host_addr;
+	struct sockaddr_in dummy_if_to_bind;
 
 	debug_high("[PID: %d] - BEGIN ClientManager::sendGETtoDest\n", getpid());
 
 	host_addr.sin_port = htons(rm.getServerPort());
 	host_addr.sin_family=AF_INET;
-	host_addr.sin_addr.s_addr = rm.getServerAddr();
+	//host_addr.sin_addr.s_addr = rm.getServerAddr();
+	if (strcmp(inet_ntoa(host_addr.sin_addr), "0.0.0.0") == 0){
+		inet_aton("143.205.176.132", &(host_addr.sin_addr));
+	}
+	else {
+		host_addr.sin_addr.s_addr = rm.getServerAddr();
+	}
+
 	
-	if (if_to_bind)
+	if (if_to_bind){
 		debug_high("Start sending the GET to the server using %s\n", inet_ntoa(if_to_bind->sin_addr));
+	}
+	else {
+		debug_high("[PID: %d] - DEBUG (making dummy address) ClientManager::sendGETtoDest\n", getpid());
+		dummy_if_to_bind.sin_family = AF_INET;
+		//if_to_use.sin_port=htons(0);
+		int portToUse = (rand()%1000) + 9000;
+		dummy_if_to_bind.sin_port = htons(portToUse);
+		dummy_if_to_bind.sin_addr.s_addr = INADDR_ANY;
+		if_to_bind = &dummy_if_to_bind;
+	}
+
 
 	sockfd_VideoServer = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP);
 	if (sockfd_VideoServer < 0) {
@@ -298,6 +321,7 @@ bool ClientManager::sendGETtoDest(struct sockaddr_in *if_to_bind, bool dummy_req
 		debug_high("[PID: %d] - DEBUG (before bind) ClientManager::sendGETtoDest\n", getpid());
 
 		if (if_to_bind != NULL) {
+			debug_high("[PID: %d] - DEBUG (really binding %s:%d) ClientManager::sendGETtoDest\n", getpid(), inet_ntoa(if_to_bind->sin_addr), (int)(ntohs(if_to_bind->sin_port)));
 			risBind = bind (sockfd_VideoServer, (struct sockaddr *)if_to_bind, sizeof(struct sockaddr_in));
 		}
 
@@ -305,9 +329,34 @@ bool ClientManager::sendGETtoDest(struct sockaddr_in *if_to_bind, bool dummy_req
 
 		if (risBind == 0) {
 
-			if (connect(sockfd_VideoServer, (struct sockaddr*)&host_addr, sizeof(struct sockaddr)) < 0) {
+			int x = fcntl(sockfd_VideoServer, F_GETFL,0);              // Get socket flags
+			fcntl(sockfd_VideoServer, F_SETFL, sockfd_VideoServer | O_NONBLOCK);   // Add non-blocking flag
+
+			int ris_conn;
+			bool tryRead = true;
+			time_t start_t, end_t;
+			double diff_t;
+
+			time(&start_t);
+			while(tryRead) {
+				tryRead = false;
+				ris_conn = connect(sockfd_VideoServer, (struct sockaddr*)&host_addr, sizeof(struct sockaddr));
+				if ((ris_conn < 0) && ((errno == ETIMEDOUT) || (errno == ENETUNREACH) || (errno == EINPROGRESS) || (errno == EALREADY))) {
+					usleep(200000);
+
+					time(&end_t);
+					diff_t = difftime(end_t, start_t);
+
+					if (diff_t < 5) {
+						tryRead = true;
+					}
+				}
+			}
+
+			//if (connect(sockfd_VideoServer, (struct sockaddr*)&host_addr, sizeof(struct sockaddr)) < 0) {à
+			if (ris_conn < 0) {
 				perror("Error in connecting to remote server");
-				debug_high("[PID: %d] - END (false2) ClientManager::sendGETtoDest\n", getpid());
+				debug_high("[PID: %d] - END (err connecting to %s:%d) ClientManager::sendGETtoDest\n", getpid(), inet_ntoa(host_addr.sin_addr), (int)(ntohs(host_addr.sin_port)));
 				return false;
 			}
 			else {
@@ -335,7 +384,7 @@ bool ClientManager::sendGETtoDest(struct sockaddr_in *if_to_bind, bool dummy_req
 		}
 	}
 	
-	if (if_to_bind) {
+	if ((if_to_bind) && (if_to_bind != &dummy_if_to_bind)) {
 		debug_high("End sending the GET to the server using %s\n", inet_ntoa(if_to_bind->sin_addr));
 	}
 	else {
@@ -369,19 +418,28 @@ void ClientManager::manageTransferOnStatUpdate(struct sockaddr_in *if_used) {
 		time_t start_t, end_t;
 		double diff_t;
 
+		//debug_medium("[%d] ----- Start receiving the STATISTICAL packet\n", getpid());
+
 		time(&start_t);
 		while(tryRead) {
 			tryRead = false;
 
 			n_recv = recv(sockfd_VideoServer, buffer, sizeof(buffer), MSG_DONTWAIT);
+			//debug_medium("[%d] ----- Received %d byte for the the STATISTICAL packet\n", getpid(), n_recv);
 			if ((n_recv < 0) && ((errno == EAGAIN) || (errno == EWOULDBLOCK))) {
 				usleep(100000);
 
 				time(&end_t);
 				diff_t = difftime(end_t, start_t);
-				if (diff_t < InterfacesManager::getInstance().timer_update) {
+				double interval_update = InterfacesManager::getInstance().timer_update;
+				if (interval_update < 8) {
+					interval_update = 8;
+				}
+				if (diff_t < interval_update) {
 					tryRead = true;
 				}
+
+				//debug_medium("[%d] ----- Received %d byte for the the STATISTICAL packet\n", getpid(), n_recv);
 			}
 		}
 
@@ -429,7 +487,27 @@ void ClientManager::manageTransferFromDestToClient(struct sockaddr_in *if_used) 
 
 	do {
 		memset(buffer, 0, sizeof(buffer));
-		n_recv = recv(sockfd_VideoServer, buffer, sizeof(buffer), 0);
+		//n_recv = recv(sockfd_VideoServer, buffer, sizeof(buffer), 0);
+		bool tryRead = true;
+		time_t start_t, end_t;
+		double diff_t;
+
+		time(&start_t);
+		while(tryRead) {
+			tryRead = false;
+
+			n_recv = recv(sockfd_VideoServer, buffer, sizeof(buffer), MSG_DONTWAIT);
+			if ((n_recv < 0) && ((errno == EAGAIN) || (errno == EWOULDBLOCK))) {
+				usleep(100000);
+
+				time(&end_t);
+				diff_t = difftime(end_t, start_t);
+				//if (diff_t < InterfacesManager::getInstance().timer_update) {
+				if (diff_t < 8) {
+					tryRead = true;
+				}
+			}
+		}
 
 		if (n_recv > 0) {
 			int n_sent = send(new_sockfd_VideoClient, buffer, n_recv, 0);
@@ -465,7 +543,7 @@ void ClientManager::manageTransferFromDestToClient(struct sockaddr_in *if_used) 
 			debug_high("connection closed by the server\n");
 		}
 		else {
-			perror("Error receiving from server while forwarding");
+			perror("manageTransferFromDestToClient: Error receiving from server while forwarding");
 		}
 
 	} while (n_recv > 0);
@@ -502,6 +580,8 @@ void ClientManager::forkAndUpdateStats(struct sockaddr_in *addr_in) {
 		}
 		else {
 
+			//InterfacesManager::getInstance().blockStatIF(addr_in);
+
 			// set random seed
 			srand(getpid());
 
@@ -527,6 +607,8 @@ void ClientManager::forkAndUpdateStats(struct sockaddr_in *addr_in) {
 			// free the Interface and Stat memory
 			InterfacesManager::getInstance().freeMemory();
 			StatManager::getInstance().freeMemory();
+
+			//InterfacesManager::getInstance().freeStatIF(addr_in);
 
 			// the child process will terminate now
 			_exit(EXIT_SUCCESS);

@@ -193,6 +193,9 @@ void InterfacesManager::updateInterfaceStats (struct sockaddr_in *if_used, int p
 		//get semaphore
 		sem_wait(sem_estimator);
 
+		debug_medium("[%d] ----- Updating interface %s STATS: %u byte in %lld usec\n",
+				getpid(), inet_ntoa(if_used->sin_addr), pktSize, time_usec);
+
 		for (u_int32_t j = 0; j < interfaces_map_vector_size; j++) {
 
 			if (interfaces_map[j].addr_info == if_used->sin_addr.s_addr){
@@ -245,11 +248,16 @@ void InterfacesManager::setRandomChoice(bool r) {
 void InterfacesManager::setTimerUpdate(int timer) {
 	timer_update = timer;
 }
+void InterfacesManager::setAlphaStdVar(double alpha) {
+	alpha_std = alpha;
+}
 
 void InterfacesManager::chooseIF(struct sockaddr_in &if_to_use, std::list<struct sockaddr_in> &if_to_update) {
 
 	if_to_use.sin_family=AF_INET;
-	if_to_use.sin_port=htons(0);
+	//if_to_use.sin_port=htons(0);
+	int portToUse = (rand()%1000) + 9000;
+	if_to_use.sin_port=htons(portToUse);
 
 	// random choice
 	if (random_chioce) {
@@ -352,7 +360,7 @@ void InterfacesManager::chooseIF(struct sockaddr_in &if_to_use, std::list<struct
 			if_thr_vector[if_idx].p_standardDev = if_thr_vector[if_idx].block_vector[if_thr_vector[if_idx].block_vector.size() - 1].standard_dev;
 			if_thr_vector[if_idx].p_mean = m_partial_sum / weight_sum;
 
-			if_thr_vector[if_idx].expected_thr = if_thr_vector[if_idx].p_mean - if_thr_vector[if_idx].p_standardDev;
+			if_thr_vector[if_idx].expected_thr = if_thr_vector[if_idx].p_mean - (if_thr_vector[if_idx].p_standardDev * alpha_std);
 			if (if_thr_vector[if_idx].expected_thr < 0) {
 				if_thr_vector[if_idx].expected_thr = 0;
 			}
@@ -416,7 +424,7 @@ void InterfacesManager::chooseIF(struct sockaddr_in &if_to_use, std::list<struct
 	// check il some of the other devices should be updated
 	if_to_update.clear();
 	
-	if (flag_update) {
+	if ((flag_update) && (!random_chioce)) {
 
 		struct timeval timeNOW;
 		gettimeofday(&timeNOW, NULL);
@@ -436,7 +444,10 @@ void InterfacesManager::chooseIF(struct sockaddr_in &if_to_use, std::list<struct
 				if (if_to_use.sin_addr.s_addr != interfaces_map [if_idx].addr_info) {
 					struct sockaddr_in toADD;
 					toADD.sin_family=AF_INET;
-					toADD.sin_port=htons(0);
+
+					int portToUse = (rand()%1000) + 9000;
+					//toADD.sin_port=htons(0);
+					toADD.sin_port=htons(portToUse);
 					toADD.sin_addr.s_addr = interfaces_map [if_idx].addr_info;
 
 					//debug_medium("IF %s need to be updated\n", inet_ntoa(tt));
@@ -466,5 +477,28 @@ bool InterfacesManager::isAlreadyInTest(struct sockaddr_in *addr_in) {
 		}
 	}
 	return ris;
+}
+
+void InterfacesManager::blockStatIF(struct sockaddr_in *addr_in) {
+	for (int if_idx = 0; if_idx < (int)interfaces_map_vector_size; if_idx++) {
+		if (interfaces_map [if_idx].addr_info == addr_in->sin_addr.s_addr) {
+
+			sem_wait(interfaces_map [if_idx].statUpdate_sem);
+
+			break;
+		}
+	}
+
+}
+
+void InterfacesManager::freeStatIF(struct sockaddr_in *addr_in) {
+	for (int if_idx = 0; if_idx < (int)interfaces_map_vector_size; if_idx++) {
+		if (interfaces_map [if_idx].addr_info == addr_in->sin_addr.s_addr) {
+
+			sem_post(interfaces_map [if_idx].statUpdate_sem);
+
+			break;
+		}
+	}
 }
 

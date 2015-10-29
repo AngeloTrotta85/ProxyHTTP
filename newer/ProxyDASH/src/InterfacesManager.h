@@ -75,6 +75,7 @@ private:
 		interfaces_map = NULL;
 		interfaces_map_vector_size = 0;
 		timer_update = TIME_STAT_UPDATE;
+		alpha_std = 1;
 		
 		random_chioce = false;
 		flag_update = true;
@@ -98,6 +99,7 @@ public:
 	void setUpdateFlag(bool updateFlag);
 	void setRandomChoice(bool r);
 	void setTimerUpdate(int timer);
+	void setAlphaStdVar(double alpha);
 
 	void checkInterfaces(std::list<std::string> &if2exclude);
 	void freeMemory(void);
@@ -108,6 +110,9 @@ public:
 
 	bool isAlreadyInTest(struct sockaddr_in *addr_in);
 
+	void blockStatIF(struct sockaddr_in *addr_in);
+	void freeStatIF(struct sockaddr_in *addr_in);
+
 private:
 	interface_info *interfaces_map;
 	unsigned int interfaces_map_vector_size;
@@ -116,6 +121,8 @@ private:
 	
 	bool flag_update;
 	bool random_chioce;
+
+	double alpha_std;
 
 public:
 	int timer_update;
