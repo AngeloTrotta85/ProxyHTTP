@@ -65,7 +65,8 @@ bool VideoManager::checkPacket(const char *path)//, struct in_addr clientIP, int
 	std::string videoNameL = parseName(path);
 
 	//printf("THREAD::  check if is Thread name %s %s\n ", videoName.c_str(), videoNameL.c_str());
-
+	if(!isLoadManifest)
+		return false;
 	if(videoName.compare(videoNameL) == 0)
 		return true;
 	return false;
