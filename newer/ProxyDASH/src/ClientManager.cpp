@@ -89,13 +89,13 @@ int ClientManager::forkAndManageClient(void) {
 			//printf("IS INIT FILE CHECK THREAD %s\n",rm.getPathName());
 			//StatManager::getInstance().fillFragmentField(rm.getPathName()); 
 
-			if(!InterfacesManager::getInstance().thread.isInit()){
+			if(!InterfacesManager::getInstance().thread.isInit() && rm.isManifest()){
 				InterfacesManager::getInstance().thread.initVideoInfo(rm.getPathName(), sockfd_VideoClient, algo, offset, quality);
 			    InterfacesManager::getInstance().thread.start();
 			    sleep(2);
 			}
 			
-			if(InterfacesManager::getInstance().thread.checkPacket(rm.getPathName())){
+			if(InterfacesManager::getInstance().thread.checkPacket(rm.getPathName()) || rm.isManifest()){
 				//printf("Found thread for managing this request %d\n", new_sockfd_VideoClient);
 				InterfacesManager::getInstance().thread.sendSignal(new_sockfd_VideoClient, rm);	
 				return 1;
@@ -205,7 +205,7 @@ bool ClientManager::manageRequest(void) {
 
 	//choose the interface to use and, in some cases, update the unused interfaces
 	//if ((rm.isGET()) && (rm.isMPEGDASHreq())) {
-	if ((rm.isGET()) && (rm.isMPEGDASH_M4S())) {
+/*	if ((rm.isGET()) && (rm.isMPEGDASH_M4S())) {
 		std::list<struct sockaddr_in> if_to_update;
 		std::list<struct sockaddr_in>::iterator it_update;
 
@@ -226,32 +226,23 @@ bool ClientManager::manageRequest(void) {
 			// only the parent process should exit from this function...
 		}
 	}
-	else {
+	else {*/
 		//tratto in maniera trasparente questa connessione tcp
+		std::list<struct sockaddr_in> if_to_update;
+
+		InterfacesManager::getInstance().chooseIF(if_to_use, if_to_update);
 		debug_medium("Managing transparently non MPEG-DASH M4S frame get (no stats update)\n");
 		StatManager::getInstance().actual_stats.isMS4 = false;
-	}
+	//}
 
 	if (rm.isMPEGDASHreq() || (!discard_MPEGDASH)) {
 
 		struct sockaddr_in sa;
 		socklen_t sa_len;
 		sa_len =(socklen_t) sizeof(sa);
-
 		
 		getsockname(new_sockfd_VideoClient,(struct sockaddr *) &sa, &sa_len);
-/*
 
-		if(rm.isInit()){
-			InterfacesManager::getInstance().thread.initVideoInfo(StatManager::getInstance().actual_stats.video_name, 50,sa.sin_addr, (int) ntohs(sa.sin_port));
-		    InterfacesManager::getInstance().thread.start();
-		    if(InterfacesManager::getInstance().thread.checkPacket(StatManager::getInstance().actual_stats.video_name,sa.sin_addr,(int) ntohs(sa.sin_port))){
-				debug_medium("Found thread for manager this request, will exit!\n");
-				InterfacesManager::getInstance().thread.sendSignal();
-
-			}
-		}
-*/
 		if (sendGETtoDest(if_to_use_act)) {
 
 
