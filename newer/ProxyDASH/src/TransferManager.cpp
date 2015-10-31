@@ -53,6 +53,11 @@ bool TransferManager::manageRequest(RequestManager rm,struct sockaddr_in *if_to_
 
    printf("CHILD %d:: start sending the GET to the server using %s:%d\n", counter, inet_ntoa(if_to_use->sin_addr), rm.getServerPort());
 
+   StatManager::getInstance().actual_stats.isMS4 = true;
+   StatManager::getInstance().actual_stats.choosed_interface.s_addr = if_to_use->sin_addr.s_addr;
+   StatManager::getInstance().actual_stats.reply_ok = false;
+   StatManager::getInstance().fillFragmentField(rm.getPathName());
+
 	if (TransferManager::sendGETtoDest(rm, sockfd_VideoServer, if_to_use)) {
 		TransferManager::manageTransferFromDestToClient(if_to_use, rm, sockfd_VideoServer, socketfd_client,  videoInfo);
 		close (sockfd_VideoServer);
@@ -199,9 +204,9 @@ void TransferManager::manageTransferFromDestToClient(struct sockaddr_in *if_used
       TransferManager::settingsManifestParams(mName, videoInfo);
    }
 
-   // StatManager::getInstance().actual_stats.frag_bytesize = n_tot_recv;
-   // time(&StatManager::getInstance().actual_stats.end_request_time);
-   // gettimeofday(&StatManager::getInstance().actual_stats.end_request_timeval, NULL);
+   StatManager::getInstance().actual_stats.frag_bytesize = n_tot_recv;
+   time(&StatManager::getInstance().actual_stats.end_request_time);
+   gettimeofday(&StatManager::getInstance().actual_stats.end_request_timeval, NULL);
 
    // debug_high("\n");
 
@@ -210,7 +215,7 @@ void TransferManager::manageTransferFromDestToClient(struct sockaddr_in *if_used
    //    InterfacesManager::getInstance().updateInterfaceStats(if_used, block_stat_recv, timevaldiff_usec(&time_st, &time_en));
    // }
 
-   // StatManager::getInstance().makeStat();
+   StatManager::getInstance().makeStat();
 }
 
 void TransferManager::settingsManifestParams(char *mName,VideoInfo *videoInfo){
