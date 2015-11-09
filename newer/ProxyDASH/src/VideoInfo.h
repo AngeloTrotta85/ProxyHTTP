@@ -26,22 +26,24 @@
 
 #include "RequestManager.h"
 #include "Miscellaneous.h"
+#include "pugixml.hpp"
 
 using namespace std;
 
 class VideoInfo
 {
-public:
 
 private:
    string videoName;
    int fragmentNumber = 0;
    int clientPort = 0;
+   long segmentDuration = 0;
    struct in_addr clientIP;
    string url1;
    string url2;
    string url3;
    int lastRequest = 0;
+   int last_bps = 0;
    struct VideoFrame {
       bool isDownloading;
       bool isDownloaded;
@@ -61,12 +63,13 @@ private:
    };
 public:
    vector<VideoFrame> frameArray;
+   vector<long> qualityArray;
 
 public:
    void customErase(std::list<struct sockaddr_in> &if_to_update, int toCheck);
    void customGetRequest(int frameNumber,RequestManager rm, char *customGET, char* qual);
 
-   void init(string duration,string durationSegment,string media,string timescale,string initSegment);
+   void init(string duration,string durationSegment,string media,string timescale,string initSegment,  pugi::xml_node manifest);
    void updateStatus();
    bool checkSegment(int number);
    int parsePath(const char* path);
@@ -83,6 +86,10 @@ public:
 	   return lastRequest;
    }
 
+   int getLastReques_bps(){
+  	   return last_bps;
+    }
+
    int getSegmentNumber(){
 	   return fragmentNumber;
    }
@@ -94,9 +101,15 @@ public:
    void initClass(int size, string name) {
       videoName = name;
    }
-
+   long getSegmentDuration(){
+	   return segmentDuration;
+   }
    VideoInfo() {}
    virtual ~VideoInfo(void);
+
+private:
+   void initQualityVector( pugi::xml_node manifest );
+
 };
 
 #endif /* VIDEOINFO_H_ */

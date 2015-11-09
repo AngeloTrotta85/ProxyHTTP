@@ -68,6 +68,7 @@ public:
 		in_addr_t addr_info;
 		sem_t *statUpdate_sem;
 		bool used;
+		double expected_thr;
 		struct stat_vector stats[BLOCK_TOTAL_DIMENSION];
 	};
 	VideoManager thread;
@@ -116,6 +117,8 @@ public:
 	void fullInterfaceList(struct sockaddr_in *if_to_use, std::list<struct sockaddr_in> &if_to_update );
 
 	bool isAlreadyInTest(struct sockaddr_in *addr_in);
+
+	double getExpectedThr(in_addr_t addr_info);
 
 private:
 	interface_info *interfaces_map;

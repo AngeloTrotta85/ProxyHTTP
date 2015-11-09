@@ -51,13 +51,12 @@ bool TransferManager::manageRequest(RequestManager rm,struct sockaddr_in *if_to_
 
    int sockfd_VideoServer;
 
-   printf("CHILD %d:: start sending the GET to the server using %s:%d\n", counter, inet_ntoa(if_to_use->sin_addr), rm.getServerPort());
-
-   StatManager::getInstance().actual_stats.isMS4 = true;
-   StatManager::getInstance().actual_stats.choosed_interface.s_addr = if_to_use->sin_addr.s_addr;
-   StatManager::getInstance().actual_stats.reply_ok = false;
-   StatManager::getInstance().fillFragmentField(rm.getPathName());
-
+   if(!rm.isManifest()){
+	   StatManager::getInstance().actual_stats.isMS4 = true;
+	   StatManager::getInstance().actual_stats.choosed_interface.s_addr = if_to_use->sin_addr.s_addr;
+	   StatManager::getInstance().actual_stats.reply_ok = false;
+	   StatManager::getInstance().fillFragmentField(rm.getPathName());
+   }
 	if (TransferManager::sendGETtoDest(rm, sockfd_VideoServer, if_to_use)) {
 		TransferManager::manageTransferFromDestToClient(if_to_use, rm, sockfd_VideoServer, socketfd_client,  videoInfo);
 		close (sockfd_VideoServer);
@@ -89,7 +88,11 @@ bool TransferManager::sendGETtoDest(RequestManager rm,int &sockfd_VideoServer, s
       int risBind = 0;  // if I don't have to execute the bind '0' will be OK
       if_to_bind->sin_family = AF_INET;
       if_to_bind->sin_port = htons(0);
-      if_to_bind->sin_addr.s_addr = INADDR_ANY;
+      if(!rm.isMPEGDASH_M4S())
+    	  if_to_bind->sin_addr.s_addr = INADDR_ANY;
+
+      printf("CHILD:: start sending the GET to the server using %s:%d\n", inet_ntoa(if_to_bind->sin_addr), if_to_bind->sin_port);
+
       if (if_to_bind != NULL) {
          risBind = bind (sockfd_VideoServer, (struct sockaddr *)if_to_bind, sizeof(struct sockaddr_in));
       }
@@ -100,6 +103,14 @@ bool TransferManager::sendGETtoDest(RequestManager rm,int &sockfd_VideoServer, s
             return false;
          }
          else {
+
+ 			struct sockaddr_in adr_inet;/* AF_INET */
+ 			socklen_t len_inet;  /* length */
+ 			len_inet = sizeof adr_inet;
+ 			getsockname(sockfd_VideoServer, (struct sockaddr *)&adr_inet, &len_inet);
+
+ 			printf("CHILD:: connected to serve use %s:%d \n", inet_ntoa(adr_inet.sin_addr), adr_inet.sin_port);
+ 			fflush(stdout);
 
             int n_send = send(sockfd_VideoServer, rm.getCopyOfGET(), strlen(rm.getCopyOfGET()), 0);
             if (n_send < 0) {
@@ -113,11 +124,11 @@ bool TransferManager::sendGETtoDest(RequestManager rm,int &sockfd_VideoServer, s
          return false;
       }
    }
-
-   //start STATS
-   time(&StatManager::getInstance().actual_stats.start_request_time);
-   gettimeofday(&(StatManager::getInstance().actual_stats.start_request_timeval), NULL);
-
+   if(rm.isMPEGDASH_M4S()){
+	   //start STATS
+	   time(&StatManager::getInstance().actual_stats.start_request_time);
+	   gettimeofday(&(StatManager::getInstance().actual_stats.start_request_timeval), NULL);
+   }
    return true;
 }
 
@@ -125,7 +136,7 @@ void TransferManager::manageTransferFromDestToClient(struct sockaddr_in *if_used
    int n_recv = 0;
    int n_tot_recv = 0;
    int block_stat_recv = 0;
-   struct timeval time_st;
+   struct timeval time_st, time_en;
    char buffer[16384]; // Check this
 
    gettimeofday(&time_st, NULL);
@@ -138,22 +149,22 @@ void TransferManager::manageTransferFromDestToClient(struct sockaddr_in *if_used
    do {
       memset(buffer, 0, sizeof(buffer));
       n_recv = recv(sockfd_VideoServer, buffer, sizeof(buffer), 0);
+      //printf("CHILD:: Ricevuto dal server: %d\n",n_tot_recv);
 
       if (n_recv > 0) {
          int n_sent = send(socketfd_VideoClient, buffer, n_recv, 0);
-         //printf("CHILD:: provo ad inviare al client: %d Ricevuti: %d Inviati: %d \n", new_sockfd_VideoClient, n_recv, n_sent);
-         //printf("CHILD:: pacchetto da inviare: \n %s\n\n\n",buffer );
+
+
          /*If is manifest append it on file*/
          if(rm.isManifest()){
 
             std::string s = buffer;
-            //debug_medium("FILE: Grandezza stringhe!%lo  \n", s.size());
             size_t found = s.find("\r\n\r\n");
             int inizio = (int) found;
             size_t errorFound = s.find("<!DOCTYPE");
             int errorInt = (int) errorFound;
             std::string sub = s;
-            //debug_medium("FILE: Inizio xml!%d  %d\n", inizio, errorFound);
+
             if(errorInt > 0){
                s = s.substr(0,errorFound);
             }
@@ -178,14 +189,14 @@ void TransferManager::manageTransferFromDestToClient(struct sockaddr_in *if_used
 
             StatManager::getInstance().actual_stats.reply_ok = true;
 
-            /*if (block_stat_recv >= byte_update) {
+            if (block_stat_recv >= BLOCK_SIZE_STATS_BYTE ) {
                gettimeofday(&time_en, NULL);
 
                InterfacesManager::getInstance().updateInterfaceStats(if_used, block_stat_recv, timevaldiff_usec(&time_st, &time_en));
 
                block_stat_recv = 0;
                gettimeofday(&time_st, NULL);
-            }*/
+            }
 
          }
 
@@ -203,19 +214,20 @@ void TransferManager::manageTransferFromDestToClient(struct sockaddr_in *if_used
       fclose (pFile);
       TransferManager::settingsManifestParams(mName, videoInfo);
    }
-
-   StatManager::getInstance().actual_stats.frag_bytesize = n_tot_recv;
-   time(&StatManager::getInstance().actual_stats.end_request_time);
-   gettimeofday(&StatManager::getInstance().actual_stats.end_request_timeval, NULL);
-
+   if(rm.isMPEGDASH_M4S()){
+	   StatManager::getInstance().actual_stats.frag_bytesize = n_tot_recv;
+	   time(&StatManager::getInstance().actual_stats.end_request_time);
+	   gettimeofday(&StatManager::getInstance().actual_stats.end_request_timeval, NULL);
+	   StatManager::getInstance().makeStat();
+   }
    // debug_high("\n");
 
-   // if (n_tot_recv == block_stat_recv) {   // never made stats (packet size less then "byte_update")
-   //    gettimeofday(&time_en, NULL);
-   //    InterfacesManager::getInstance().updateInterfaceStats(if_used, block_stat_recv, timevaldiff_usec(&time_st, &time_en));
-   // }
+/*   if (n_tot_recv == block_stat_recv) {   // never made stats (packet size less then "byte_update")
+       gettimeofday(&time_en, NULL);
+       InterfacesManager::getInstance().updateInterfaceStats(if_used, block_stat_recv, timevaldiff_usec(&time_st, &time_en));
+   }*/
 
-   StatManager::getInstance().makeStat();
+
 }
 
 void TransferManager::settingsManifestParams(char *mName,VideoInfo *videoInfo){
@@ -232,7 +244,7 @@ void TransferManager::settingsManifestParams(char *mName,VideoInfo *videoInfo){
       std::string timescale = doc.child("AdaptationSet").child("SegmentTemplate").attribute("timescale").value();
       std::string initSegment = doc.child("AdaptationSet").child("SegmentTemplate").attribute("initialization").value();
 
-      videoInfo->init(duration, durationSegment, media, timescale, initSegment);
+      videoInfo->init(duration, durationSegment, media, timescale, initSegment, doc.child("AdaptationSet") );
    }
  }
 /*----------END Download From server in normal Mode -----------*/
@@ -242,11 +254,9 @@ bool TransferManager::getVideoFrame(const char* GET, RequestManager rm, struct s
 
    struct sockaddr_in host_addr;
    //Random Port???
-   host_addr.sin_port = htons(rm.getServerPort());
+   host_addr.sin_port = htons(80);
    host_addr.sin_family=AF_INET;
    host_addr.sin_addr.s_addr = rm.getServerAddr();
-
-   printf("CUSTOM CHILD:: start sending the GET to the server using %s:%d\n", inet_ntoa(if_used->sin_addr), rm.getServerPort());
 
    localServerSocket = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP);
    if (localServerSocket < 0) {
@@ -255,21 +265,38 @@ bool TransferManager::getVideoFrame(const char* GET, RequestManager rm, struct s
    }
    else {
       int risBind = 0;  // if I don't have to execute the bind '0' will be OK
+      if_used->sin_family = AF_INET;
+      if_used->sin_port = htons(0);
+	  //if_used->sin_addr.s_addr = INADDR_ANY;
 
       if (if_used != NULL) {
          risBind = bind (localServerSocket, (struct sockaddr *)if_used, sizeof(struct sockaddr_in));
       }
       if (risBind == 0) {
 
+		struct sockaddr_in adr_inet;/* AF_INET */
+		socklen_t len_inet;  /* length */
+		len_inet = sizeof adr_inet;
+		getsockname(localServerSocket, (struct sockaddr *)&adr_inet, &len_inet);
+
+		printf("CUSTOM CHILD:: bind socket use %s:%d\n", inet_ntoa(adr_inet.sin_addr), adr_inet.sin_port);
+		fflush(stdout);
          if (connect(localServerSocket, (struct sockaddr*)&host_addr, sizeof(struct sockaddr)) < 0) {
             perror("Error in connecting to remote server");
             return false;
          }
          else {
+			struct sockaddr_in adr_inet;/* AF_INET */
+			socklen_t len_inet;  /* length */
+			len_inet = sizeof adr_inet;
+			getsockname(localServerSocket, (struct sockaddr *)&adr_inet, &len_inet);
+
+			printf("CUSTOM CHILD:: connected to serve use %s:%d \n %s \n", inet_ntoa(adr_inet.sin_addr), adr_inet.sin_port, GET);
+			fflush(stdout);
 
             int n_send = send(localServerSocket, GET, strlen(GET), 0);
             if (n_send < 0) {
-               perror("Error writing to server socket");
+               perror("Custom download: Error writing to server socket");
                return false;
             }
          }
@@ -287,9 +314,6 @@ void TransferManager::manageTransferFromDest(int localServerSocket, char* filena
    int n_tot_recv = 0;
    int block_stat_recv = 0;
    char localBuffer[16384];
-   //getsockname(new_sockfd_VideoClient, &local_address, &addr_size);
-
-   //debug_high("Receiving from server and sending to the client %d %d \n", ipLocal,portLocal);
 
    FILE * pFile = NULL;
    pFile = fopen (filename, "w+");
@@ -299,19 +323,13 @@ void TransferManager::manageTransferFromDest(int localServerSocket, char* filena
       n_recv = recv(localServerSocket, localBuffer, sizeof(localBuffer), 0);
 
       if (n_recv > 0) {
-         //printf("CUSTOM CHILD:: Ricevuto dal client: %s\n", localBuffer);
-         //char* separator = "\nEND\n";
-         fwrite (localBuffer, n_recv, 1, pFile);
-        // fwrite (separator, sizeof(separator), 1, pFile);
 
-/*       tempPacket=(struct packet *)malloc(sizeof(struct packet));
-         strcpy(tempPacket->buffer,buffer);
-         tempPacket->next=NULL;
-         ptr->next=tempPacket;
-         ptr = tempPacket;*/
+         //printf("CUSTOM CHILD:: Ricevuto dal server: %d\n", n_recv);
+         fwrite (localBuffer, n_recv, 1, pFile);
 
          n_tot_recv += n_recv;
          block_stat_recv += n_recv;
+
       }
       else if (n_recv == 0) {
          debug_high("connection closed by the server\n");

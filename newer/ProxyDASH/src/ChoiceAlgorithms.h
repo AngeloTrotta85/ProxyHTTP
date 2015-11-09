@@ -20,6 +20,8 @@ class ChoiceAlgorithms {
 
 		static int random(int segmentNumber, int offset, VideoInfo& videoInfo);
 		static int fixed(int segmentNumber, int offset,  VideoInfo& videoInfo);
+		static int caba(VideoInfo& videoInfo, long thr);
+
 		ChoiceAlgorithms();
 		virtual ~ChoiceAlgorithms();
 		//static int (int segmentNumber, int offset);

@@ -42,6 +42,8 @@ std::string VideoManager::parseName(const char *path){
 	sscanf(ptr, "%s", tmp_video_name);
 	return (std::string(tmp_video_name));
 }
+
+
 void VideoManager::initVideoInfo(const char *path, int socket, char algo, int offset, char* quality) //, int fragNumber, struct in_addr clientIP, int clientPort)
 {     
 	this->algo = algo;
@@ -98,12 +100,14 @@ void VideoManager::startVideoManager()
 		printf("THREAD::  Aggiorno le intefaccie \n");
 		fflush(stdout);
 
-		if(rm.isMPEGDASH_M4S())
-				videoInfo.updateStatus();
-		InterfacesManager::getInstance().chooseIFMain(if_main, if_to_use);
+		if(!rm.isManifest() && !rm.isInit()){
+			videoInfo.updateStatus();
+			InterfacesManager::getInstance().chooseIFMain(if_main, if_to_use);
+		}
 
 
-		printf("THREAD::  Best interface is %s\n", inet_ntoa(if_main.sin_addr));
+
+		printf("THREAD::  Best interface is %s thr: \n", inet_ntoa(if_main.sin_addr));
 		fflush(stdout);
 
 		printf("THREAD::  Gestisco la richiesta \n");
@@ -113,7 +117,9 @@ void VideoManager::startVideoManager()
 		//close socket used from the child
 		close (new_sockfd_VideoClient);
 
-		printf("THREAD::  Cerco se ci sono interfaccie libere da usare: %d\n",new_sockfd_VideoClient);
+		printf("THREAD::  Cerco se ci sono interfaccie libere da usare\n");
+		fflush(stdout);
+
 		if(!rm.isManifest() && !rm.isInit())
 			checkUsedInterfaces();
 
@@ -227,7 +233,7 @@ void VideoManager::useInterface(struct sockaddr_in *addr_in){
 void VideoManager::customFrameDownload(struct sockaddr_in *addr_in){
 
 	char filename[256];
-	int frameNumber = selectFrame();
+	int frameNumber = selectFrame(InterfacesManager::getInstance().getExpectedThr(addr_in->sin_addr.s_addr));
 	generateRandomFileName(frameNumber, filename);
 
 	//printf("THREAD:: Trovata interfaccia libera: %s scelto numero random: %d \n", inet_ntoa(addr_in->sin_addr), frameNumber);
@@ -305,7 +311,7 @@ void VideoManager::generateRandomFileName(int n, char* name){
 	} while(exists(test));
 }
 
-int VideoManager::selectFrame(){
+int VideoManager::selectFrame(long thr){
 
 	int to_ret = 0;
 
@@ -315,6 +321,9 @@ int VideoManager::selectFrame(){
 			break;
 		case 'f':
 			to_ret = ChoiceAlgorithms::fixed(videoInfo.getLastRequest(), offset, videoInfo);
+			break;
+		case 'c':
+			to_ret = ChoiceAlgorithms::caba(videoInfo, thr);
 			break;
 		default:
 			to_ret = ChoiceAlgorithms::random(videoInfo.getLastRequest(), offset, videoInfo);

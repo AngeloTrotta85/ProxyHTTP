@@ -30,6 +30,13 @@ int ChoiceAlgorithms::fixed(int segmentNumber, int offset, VideoInfo& videoInfo)
 	while(videoInfo.checkSegment(to_ret)){
 		to_ret++;
 	}
-
 	return to_ret;
+}
+
+int ChoiceAlgorithms::caba( VideoInfo& videoInfo, long thr){
+	long sizeSegment = videoInfo.getLastReques_bps() * videoInfo.getSegmentDuration();
+	long expectedTime = sizeSegment/thr;
+	int segmentNumber = videoInfo.getLastRequest() + (expectedTime/videoInfo.getSegmentDuration());
+	printf("THREAD:: CABA algorithms    expected Time: %ld %ld %ld \n", expectedTime, thr, sizeSegment);
+	return segmentNumber;
 }

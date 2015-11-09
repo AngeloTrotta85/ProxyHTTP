@@ -12,6 +12,7 @@ void VideoInfo::freeMemory(void) {
 	frameArray.clear();
 	frameArray.resize(0);
 }
+
 void VideoInfo::customErase(std::list<struct sockaddr_in> &if_to_update, int toCheck){
 	std::list<struct sockaddr_in>::iterator i = if_to_update.begin();
 	while (i != if_to_update.end())
@@ -107,20 +108,26 @@ int VideoInfo::parsePath(const char* path){
 
 	string tmp_path = string(path);
 
-	int pos = tmp_path.find(url2.c_str());
+	int pos1 = tmp_path.find(url1.c_str());
+	int pos2 = tmp_path.find(url2.c_str());
 
-	int pos2 = tmp_path.find(url3.c_str());
-	if(pos > 0 && pos2>0){
-		string numberString = tmp_path.substr(url2.size()+pos, (url2.size()+pos) - pos2);
+	int pos3 = tmp_path.find(url3.c_str());
+	if(pos1 > 0 && pos2 > 0 && pos3>0){
+		/*save last bps*/
+		string bpsString = tmp_path.substr(url1.size()+pos1,pos2 - (url1.size()+pos1));
+		last_bps = atoi(bpsString.c_str());
+
+		string numberString = tmp_path.substr(url2.size()+pos2, (url2.size()+pos2) - pos3);
 		int number = atoi(numberString.c_str());
+		printf("Thread:: Parser path segment number %d at %sbps \n",number,bpsString.c_str());
+
 		return number;
 	}
 
 	return 0;
 }
-void VideoInfo::init(string duration,string durationSegment,string media,string timescale,string initSegment){
+void VideoInfo::init(string duration,string durationSegment,string media,string timescale,string initSegment,  pugi::xml_node manifest){
 
-	printf("THREAD::  Init VideoInfo Class %s, %s, %s, %s \n", duration.c_str(),durationSegment.c_str(), media.c_str(), timescale.c_str());
 	//Parse duration in time
 	int pt_pos = duration.find("PT");
 	int h_pos = duration.find("H");
@@ -137,6 +144,7 @@ void VideoInfo::init(string duration,string durationSegment,string media,string 
 
 	int segmentNumber = s / (durationSegmentn/timescalen);
 
+	segmentDuration = durationSegmentn/timescalen;
 	int pos1 = media.find("$Bandwidth$");
 	int pos2 = media.find("$Number$");
 	string mediaLocal = string(media.c_str());
@@ -151,7 +159,23 @@ void VideoInfo::init(string duration,string durationSegment,string media,string 
 	//print();
 	//Insert for to init vector
 	initVector(segmentNumber);
+	initQualityVector(manifest);
+
+	printf("THREAD::  Init VideoInfo Class %s, %s, %s, %s \n", duration.c_str(),durationSegment.c_str(), media.c_str(), timescale.c_str());
+
 }
+
+void VideoInfo::initQualityVector( pugi::xml_node manifest){
+
+
+	qualityArray.clear();
+	for (pugi::xml_node quality: manifest.children("Representation"))
+	{
+	    qualityArray.push_back(atol(quality.attribute("bandwidth").value()));
+	}
+
+}
+
 void VideoInfo::print(){
 	printf("THREAD::: Video base information %s::%s::%s\n"
 		"			fragment number: %d\n", url1.c_str(), url2.c_str(), url3.c_str(), fragmentNumber);

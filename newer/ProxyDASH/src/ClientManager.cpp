@@ -241,10 +241,11 @@ bool ClientManager::manageRequest(void) {
 		socklen_t sa_len;
 		sa_len =(socklen_t) sizeof(sa);
 		
-		getsockname(new_sockfd_VideoClient,(struct sockaddr *) &sa, &sa_len);
 
 		if (sendGETtoDest(if_to_use_act)) {
+			getsockname(sockfd_VideoServer,(struct sockaddr *) &sa, &sa_len);
 
+			printf("Trasparent GET:: bind socket use %s:%d\n", inet_ntoa(sa.sin_addr), sa.sin_port);
 
 			manageTransferFromDestToClient(if_to_use_act);
 

@@ -81,7 +81,7 @@ public:
 private:
    void useInterface(struct sockaddr_in *addr_in);
    void customFrameDownload(struct sockaddr_in *addr_in);
-   int selectFrame(void);
+   int selectFrame(long thr);
    void generateRandomFileName(int n, char* name);
    void checkUsedInterfaces(void);
 

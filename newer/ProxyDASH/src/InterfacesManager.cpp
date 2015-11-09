@@ -159,7 +159,8 @@ void InterfacesManager::checkInterfaces(std::list<std::string> &if2exclude) {
 		for (unsigned int i = 0; i < interfaces_map_vector_size; i++) {
 			struct in_addr ia;
 			ia.s_addr = interfaces_map[i].addr_info;
-
+			interfaces_map[i].used = false;
+			interfaces_map[i].expected_thr = 0;
 			debug_low("%s[%s] ", interfaces_map[i].name, inet_ntoa(ia));
 		}
 		debug_low("\n");
@@ -193,12 +194,16 @@ void InterfacesManager::updateInterfaceStats (struct sockaddr_in *if_used, int p
 		//get semaphore
 		sem_wait(sem_estimator);
 
+		debug_medium("InterfaceManager: size: %d time: %lld  %s  ", pktSize, time_usec, inet_ntoa(if_used->sin_addr));
+		debug_medium ("%lf ", (((double) pktSize)  /
+									((double) time_usec)) * (1000000.0 / 1024.0));
+		debug_medium("\n");
 		for (u_int32_t j = 0; j < interfaces_map_vector_size; j++) {
 
 			if (interfaces_map[j].addr_info == if_used->sin_addr.s_addr){
 
 				for (int i = 0; i < BLOCK_TOTAL_DIMENSION; i++) {
-					if (i < (BLOCK_TOTAL_DIMENSION - 1)) {
+					if 	(i < (BLOCK_TOTAL_DIMENSION - 2)) {
 						interfaces_map[j].stats[i].size = interfaces_map[j].stats[i+1].size;
 						interfaces_map[j].stats[i].time = interfaces_map[j].stats[i+1].time;
 						interfaces_map[j].stats[i].timestamp = interfaces_map[j].stats[i+1].timestamp;
@@ -214,20 +219,20 @@ void InterfacesManager::updateInterfaceStats (struct sockaddr_in *if_used, int p
 			}
 		}
 
-		for (u_int32_t j = 0; j < interfaces_map_vector_size; j++) {
-			debug_high("IDX: %d - ", j);
+/*		for (u_int32_t j = 0; j < interfaces_map_vector_size; j++) {
+			debug_medium("IDX: %d - ", j);
 			for (int i = 0; i < BLOCK_TOTAL_DIMENSION; i++) {
 				//printf ("%d ", glob_var[idx_if][vec_type][i]);
 				if ((interfaces_map[j].stats[i].size > 0) && (interfaces_map[j].stats[i].time > 0)) {
-					debug_high ("%lf ", (((double) interfaces_map[j].stats[i].size)  /
+					debug_medium ("%lf ", (((double) interfaces_map[j].stats[i].size)  /
 							((double) interfaces_map[j].stats[i].time)) * (1000000.0 / 1024.0));
 				}
 				else {
-					debug_high ("0 ");
+					debug_medium ("0 ");
 				}
 			}
-			debug_high ("\n");
-		}
+			debug_medium ("\n");
+		}*/
 
 		//release semaphore
 		sem_post(sem_estimator);
@@ -486,23 +491,30 @@ void InterfacesManager::fullInterfaceList(struct sockaddr_in *if_to_use, std::li
 
 void InterfacesManager::setUsed(in_addr_t addr_info) {
 
+	//get semaphore
+	sem_wait(sem_estimator);
 	for (int if_idx = 0; if_idx < (int)interfaces_map_vector_size; if_idx++) {
 		// controllo che non sia quello scelto per inviare il pacchetto su...
 		if (addr_info == interfaces_map [if_idx].addr_info) {
 			 interfaces_map [if_idx].used = true;
 		}
 	}
-
+	//release semaphore
+	sem_post(sem_estimator);
 }
 
 void InterfacesManager::setFree(in_addr_t addr_info) {
 
+	//get semaphore
+	sem_wait(sem_estimator);
 	for (int if_idx = 0; if_idx < (int)interfaces_map_vector_size; if_idx++) {
 		// controllo che non sia quello scelto per inviare il pacchetto su...
 		if (addr_info == interfaces_map [if_idx].addr_info) {
 			 interfaces_map [if_idx].used = false;
 		}
 	}
+	//release semaphore
+	sem_post(sem_estimator);
 
 }
 void InterfacesManager::chooseIFMain(struct sockaddr_in &if_to_use_main, std::list<struct sockaddr_in> &if_to_use){
@@ -510,6 +522,13 @@ void InterfacesManager::chooseIFMain(struct sockaddr_in &if_to_use_main, std::li
 	if_to_use_main.sin_port=htons(0);
 
 	int block_size = BLOCK_SIZE;
+	debug_medium("Interface Manager: wait sem for choice if \n");
+	fflush(stdout);
+	//get semaphore
+	sem_wait(sem_estimator);
+
+	debug_medium("Interface Manager: sem acquired \n");
+	fflush(stdout);
 
 	std::vector< interface_stat_t > if_thr_vector;
 
@@ -605,27 +624,34 @@ void InterfacesManager::chooseIFMain(struct sockaddr_in &if_to_use_main, std::li
 		if_thr_vector[if_idx].p_mean = m_partial_sum / weight_sum;
 
 		if_thr_vector[if_idx].expected_thr = if_thr_vector[if_idx].p_mean - if_thr_vector[if_idx].p_standardDev;
+		struct sockaddr_in toADD;
+		toADD.sin_family=AF_INET;
+		toADD.sin_port=htons(0);
+		toADD.sin_addr.s_addr = interfaces_map [if_idx].addr_info;
+
+
 		if (if_thr_vector[if_idx].expected_thr < 0) {
 			if_thr_vector[if_idx].expected_thr = 0;
 		}
+		printf("THREAD:: InterfaceManager check best interface %s expectedTHR: %.2lf %.2lf %.2lf \n",
+				inet_ntoa(toADD.sin_addr),
+				if_thr_vector[if_idx].p_mean,
+				if_thr_vector[if_idx].p_standardDev,
+				if_thr_vector[if_idx].expected_thr);
 	}
 
 	// calculate the best interface
-	bool enaught_info = true;
-
-
-	//idx_ris = rand() % if_vector.size();
 	if_to_use_main.sin_addr.s_addr=interfaces_map [rand() % interfaces_map_vector_size].addr_info;
-	if (enaught_info) {
-		double best_dr = -1;
-		for (int if_idx = 0; if_idx < (int)if_thr_vector.size(); if_idx++) {
-			if (if_thr_vector[if_idx].expected_thr > best_dr && !interfaces_map [if_idx].used) {
-				best_dr = if_thr_vector[if_idx].expected_thr;
-				//idx_ris = if_idx;
-				if_to_use_main.sin_addr.s_addr=interfaces_map [if_idx].addr_info;
-			}
+	double best_dr = -1;
+	for (int if_idx = 0; if_idx < (int)if_thr_vector.size(); if_idx++) {
+		if (if_thr_vector[if_idx].expected_thr > best_dr && !interfaces_map [if_idx].used) {
+			best_dr = if_thr_vector[if_idx].expected_thr;
+			//idx_ris = if_idx;
+			if_to_use_main.sin_addr.s_addr=interfaces_map [if_idx].addr_info;
 		}
+		interfaces_map [if_idx].expected_thr = if_thr_vector[if_idx].expected_thr;
 	}
+
 
 	// check if some of the other devices are free
 	if_to_use.clear();
@@ -641,6 +667,19 @@ void InterfacesManager::chooseIFMain(struct sockaddr_in &if_to_use_main, std::li
 		}
 
 	}
+	//release semaphore
+	sem_post(sem_estimator);
+}
 
+double InterfacesManager::getExpectedThr(in_addr_t addr_info) {
+	sem_wait(sem_estimator);
+	for (int if_idx = 0; if_idx < (int)interfaces_map_vector_size; if_idx++) {
+		// controllo che non sia quello scelto per inviare il pacchetto su...
+		if (addr_info == interfaces_map [if_idx].addr_info) {
+			 return interfaces_map [if_idx].expected_thr;
+		}
+	}
+	return 0;
+	sem_post(sem_estimator);
 }
 
