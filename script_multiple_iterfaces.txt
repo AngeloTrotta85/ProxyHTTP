@@ -1,0 +1,55 @@
+###########################################################################
+# ESEMPI
+###########################################################################
+# enqueue packets to a specific queue
+sudo iptables -t mangle -A POSTROUTING -p all -j NFQUEUE --queue-num 1
+sudo iptables -t mangle -A INPUT -p all -j NFQUEUE --queue-num 2
+
+# change ip for marked packets
+sudo iptables -t nat -A POSTROUTING -m mark --mark 1 -j SNAT --to-source 130.136.37.171
+
+
+###########################################################################
+# COMMANDS
+###########################################################################
+
+# send packet to the queue 0 where they will be marked by a 
+sudo iptables -t mangle -A OUTPUT -p all -j NFQUEUE --queue-num 0
+
+# create additional routing table
+sudo echo 11 dev1table >> /etc/iproute2/rt_tables
+sudo echo 12 dev2table >> /etc/iproute2/rt_tables
+
+# 130.136.37.0/24 is the IP_network for eth0 - 130.136.37.1 is the gateway
+sudo ip route add 130.136.37.0/24 dev eth0 src 130.136.37.171 table dev1table
+sudo ip route add default via 130.136.37.1 table dev1table
+
+# 10.200.0.0/16 is the IP_network for wlan0 - 10.200.255.254 is the gateway
+sudo ip route add 10.200.0.0/16 dev wlan0 src 10.200.9.46 table dev2table
+sudo ip route add default via 10.200.255.254 table dev2table
+
+# set up the routing tables
+sudo ip rule add from 130.136.37.171 table dev1table
+sudo ip rule add from 10.200.9.46 table dev2table
+
+
+## fin qui ok funzionano le due interfacce separatamente
+
+
+# add rules for marcked pkts
+sudo ip rule add from all fwmark 1 table dev1table
+sudo ip rule add from all fwmark 2 table dev2table
+
+# change ip address for outgoing marked packets
+sudo iptables -t nat -A POSTROUTING -m mark --mark 1 -j SNAT --to-source 130.136.37.171
+sudo iptables -t nat -A POSTROUTING -m mark --mark 2 -j SNAT --to-source 10.200.9.46
+
+# flush tables (seems to be important)
+sudo ip route flush cache
+
+##################################################
+
+#? relax the reverse path validation... (serve?)
+#sudo sysctl -w net.ipv4.conf.wlan0.rp_filter=2
+#sudo sysctl -w net.ipv4.conf.eth0.rp_filter=2
+
