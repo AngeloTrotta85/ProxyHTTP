@@ -492,7 +492,6 @@ void InterfacesManager::fullInterfaceList(struct sockaddr_in *if_to_use, std::li
 void InterfacesManager::setUsed(in_addr_t addr_info) {
 
 	//get semaphore
-	sem_wait(sem_estimator);
 	for (int if_idx = 0; if_idx < (int)interfaces_map_vector_size; if_idx++) {
 		// controllo che non sia quello scelto per inviare il pacchetto su...
 		if (addr_info == interfaces_map [if_idx].addr_info) {
@@ -500,13 +499,16 @@ void InterfacesManager::setUsed(in_addr_t addr_info) {
 		}
 	}
 	//release semaphore
-	sem_post(sem_estimator);
 }
 
 void InterfacesManager::setFree(in_addr_t addr_info) {
 
-	//get semaphore
-	sem_wait(sem_estimator);
+	//get semaphor
+	printf("THREAD:: Aspetto il sem per setFree");
+	fflush(stdout);
+	//sem_wait(sem_estimator);
+	printf("THREAD:: acquisito il sem per setFree");
+	fflush(stdout);
 	for (int if_idx = 0; if_idx < (int)interfaces_map_vector_size; if_idx++) {
 		// controllo che non sia quello scelto per inviare il pacchetto su...
 		if (addr_info == interfaces_map [if_idx].addr_info) {
@@ -514,8 +516,9 @@ void InterfacesManager::setFree(in_addr_t addr_info) {
 		}
 	}
 	//release semaphore
-	sem_post(sem_estimator);
-
+	//sem_post(sem_estimator);
+	printf("THREAD:: rilasciato il sem per setFree");
+	fflush(stdout);
 }
 void InterfacesManager::chooseIFMain(struct sockaddr_in &if_to_use_main, std::list<struct sockaddr_in> &if_to_use){
 	if_to_use_main.sin_family=AF_INET;
@@ -525,7 +528,7 @@ void InterfacesManager::chooseIFMain(struct sockaddr_in &if_to_use_main, std::li
 	debug_medium("Interface Manager: wait sem for choice if \n");
 	fflush(stdout);
 	//get semaphore
-	sem_wait(sem_estimator);
+	//sem_wait(sem_estimator);
 
 	debug_medium("Interface Manager: sem acquired \n");
 	fflush(stdout);
@@ -668,11 +671,10 @@ void InterfacesManager::chooseIFMain(struct sockaddr_in &if_to_use_main, std::li
 
 	}
 	//release semaphore
-	sem_post(sem_estimator);
+	//sem_post(sem_estimator);
 }
 
 double InterfacesManager::getExpectedThr(in_addr_t addr_info) {
-	sem_wait(sem_estimator);
 	for (int if_idx = 0; if_idx < (int)interfaces_map_vector_size; if_idx++) {
 		// controllo che non sia quello scelto per inviare il pacchetto su...
 		if (addr_info == interfaces_map [if_idx].addr_info) {
@@ -680,6 +682,5 @@ double InterfacesManager::getExpectedThr(in_addr_t addr_info) {
 		}
 	}
 	return 0;
-	sem_post(sem_estimator);
 }
 

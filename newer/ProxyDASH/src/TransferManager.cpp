@@ -116,6 +116,9 @@ bool TransferManager::sendGETtoDest(RequestManager rm,int &sockfd_VideoServer, s
             if (n_send < 0) {
                perror("Error writing to server socket");
                return false;
+            }else{
+     			printf("CHILD:: send to serve use %s inviati: %d \n", inet_ntoa(adr_inet.sin_addr), n_send);
+     			fflush(stdout);
             }
          }
       }
@@ -149,7 +152,7 @@ void TransferManager::manageTransferFromDestToClient(struct sockaddr_in *if_used
    do {
       memset(buffer, 0, sizeof(buffer));
       n_recv = recv(sockfd_VideoServer, buffer, sizeof(buffer), 0);
-      //printf("CHILD:: Ricevuto dal server: %d\n",n_tot_recv);
+     // printf("CHILD:: Ricevuto dal server: %d\n",n_tot_recv);
 
       if (n_recv > 0) {
          int n_sent = send(socketfd_VideoClient, buffer, n_recv, 0);
@@ -215,10 +218,13 @@ void TransferManager::manageTransferFromDestToClient(struct sockaddr_in *if_used
       TransferManager::settingsManifestParams(mName, videoInfo);
    }
    if(rm.isMPEGDASH_M4S()){
-	   StatManager::getInstance().actual_stats.frag_bytesize = n_tot_recv;
+	   printf("CHILD:: creo le stat \n");
+	   /*StatManager::getInstance().actual_stats.frag_bytesize = n_tot_recv;
 	   time(&StatManager::getInstance().actual_stats.end_request_time);
 	   gettimeofday(&StatManager::getInstance().actual_stats.end_request_timeval, NULL);
-	   StatManager::getInstance().makeStat();
+	   StatManager::getInstance().makeStat();*/
+	   printf("CHILD:: finito stat \n");
+
    }
    // debug_high("\n");
 
@@ -309,11 +315,14 @@ bool TransferManager::getVideoFrame(const char* GET, RequestManager rm, struct s
    return true;
 }
 
-void TransferManager::manageTransferFromDest(int localServerSocket, char* filename) {
+void TransferManager::manageTransferFromDest(int localServerSocket, char* filename, struct sockaddr_in *if_used ) {
    int n_recv = 0;
    int n_tot_recv = 0;
    int block_stat_recv = 0;
    char localBuffer[16384];
+   struct timeval time_st, time_en;
+
+   gettimeofday(&time_st, NULL);
 
    FILE * pFile = NULL;
    pFile = fopen (filename, "w+");
@@ -329,6 +338,19 @@ void TransferManager::manageTransferFromDest(int localServerSocket, char* filena
 
          n_tot_recv += n_recv;
          block_stat_recv += n_recv;
+
+		   debug_high("\r%d of %d  ", n_recv, n_tot_recv);
+
+		   StatManager::getInstance().actual_stats.reply_ok = true;
+
+		   if (block_stat_recv >= BLOCK_SIZE_STATS_BYTE ) {
+			  gettimeofday(&time_en, NULL);
+
+			  InterfacesManager::getInstance().updateInterfaceStats(if_used, block_stat_recv, timevaldiff_usec(&time_st, &time_en));
+
+			  block_stat_recv = 0;
+			  gettimeofday(&time_st, NULL);
+		   }
 
       }
       else if (n_recv == 0) {

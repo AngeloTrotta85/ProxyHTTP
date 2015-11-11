@@ -47,7 +47,7 @@ public:
    static void forkAndDownloadFrame(int frameNumber);
    static void customGetRequest(int frameNumber,RequestManager rm, char *customGET);
    static void settingsManifestParams(char *mName,VideoInfo videoInfo);
-   static void manageTransferFromDest(int localServerSocket, char* filename);
+   static void manageTransferFromDest(int localServerSocket, char* filename, struct sockaddr_in *if_used);
 
 };
 

@@ -226,7 +226,9 @@ void VideoManager::checkInterfaceStatus(){
 void VideoManager::useInterface(struct sockaddr_in *addr_in){
 
 	InterfacesManager::getInstance().setUsed(addr_in->sin_addr.s_addr);
+	printf("THREAD:: Interface set used \n");
 	customFrameDownload(addr_in);
+	printf("THREAD:: Create custom child \n");
 
 }
 
@@ -268,7 +270,7 @@ void VideoManager::customFrameDownload(struct sockaddr_in *addr_in){
 		int socketl = -1;
 		if(TransferManager::getVideoFrame(ptrGET, rm, addr_in, socketl)){
 			//printf("CUSTOM CHILD :: Get inviata con sucesso, ricevo su file \n");
-			TransferManager::manageTransferFromDest(socketl, filename);
+			TransferManager::manageTransferFromDest(socketl, filename, addr_in);
 			//printf("CUSTOM CHILD :: Finito di ricevere \n");
 		}
 		close(socketl);
@@ -309,6 +311,8 @@ void VideoManager::generateRandomFileName(int n, char* name){
 		name[18] = 0;
 		test = std::string(name);
 	} while(exists(test));
+	printf("THREAD:: generato nome file  %s \n", name);
+	fflush(stdout);
 }
 
 int VideoManager::selectFrame(long thr){
@@ -329,7 +333,8 @@ int VideoManager::selectFrame(long thr){
 			to_ret = ChoiceAlgorithms::random(videoInfo.getLastRequest(), offset, videoInfo);
 
 	}
-
+	printf("THREAD:: scelto segmento numero %d \n", to_ret);
+	fflush(stdout);
 	return to_ret;
 
 }

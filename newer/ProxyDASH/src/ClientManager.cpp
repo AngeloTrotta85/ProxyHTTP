@@ -86,7 +86,7 @@ int ClientManager::forkAndManageClient(void) {
 
 		if(rm.isMPEGDASHreq() && StatManager::getInstance().actual_stats.video_name != NULL){
 
-			//printf("IS INIT FILE CHECK THREAD %s\n",rm.getPathName());
+			printf("IS INIT FILE CHECK THREAD %s\n",rm.getPathName());
 			//StatManager::getInstance().fillFragmentField(rm.getPathName()); 
 
 			if(!InterfacesManager::getInstance().thread.isInit() && rm.isManifest()){
@@ -96,8 +96,10 @@ int ClientManager::forkAndManageClient(void) {
 			}
 			
 			if(InterfacesManager::getInstance().thread.checkPacket(rm.getPathName()) || rm.isManifest()){
-				//printf("Found thread for managing this request %d\n", new_sockfd_VideoClient);
+				printf("Found thread for managing this request %d\n", new_sockfd_VideoClient);
 				InterfacesManager::getInstance().thread.sendSignal(new_sockfd_VideoClient, rm);	
+				printf("Sent thread signal for managing this request %d\n", new_sockfd_VideoClient);
+
 				return 1;
 			}
 			//StatManager::getInstance().freeMemory();
@@ -151,6 +153,7 @@ bool ClientManager::getRequestFromClient(void) {
 	bzero(buffer, sizeof(buffer));
 	int nrcv = recv(new_sockfd_VideoClient, buffer, sizeof(buffer), 0);
 
+	//debug_medium("BUFFER:: %s \n", buffer);
 	if (nrcv < 0) {
 		perror("Error recv from client socket");
 		return false;
@@ -161,7 +164,12 @@ bool ClientManager::getRequestFromClient(void) {
 	}
 	else {
 		// parsing the GET
+		printf("Befor load req \n");
+		fflush(stdout);
 		if (!rm.load_req(buffer, nrcv)) {
+			printf("After load req \n");
+			fflush(stdout);
+
 			// not a get and hence I have to get the destination address in another way
 			// fill at least host_name and server_port (if present)
 			// assume s is a connected socket
@@ -192,6 +200,8 @@ bool ClientManager::getRequestFromClient(void) {
 			// boh! non so come/dove leggere la destinazione
 		}
 	}
+	printf("After load req out if \n");
+				fflush(stdout);
 
 	return true;
 }
@@ -228,12 +238,12 @@ bool ClientManager::manageRequest(void) {
 	}
 	else {*/
 		//tratto in maniera trasparente questa connessione tcp
-		std::list<struct sockaddr_in> if_to_update;
 
-		InterfacesManager::getInstance().chooseIF(if_to_use, if_to_update);
+		//InterfacesManager::getInstance().chooseIF(if_to_use, if_to_update);
 		debug_medium("Managing transparently non MPEG-DASH M4S frame get (no stats update)\n");
 		StatManager::getInstance().actual_stats.isMS4 = false;
 	//}
+
 
 	if (rm.isMPEGDASHreq() || (!discard_MPEGDASH)) {
 
@@ -241,6 +251,11 @@ bool ClientManager::manageRequest(void) {
 		socklen_t sa_len;
 		sa_len =(socklen_t) sizeof(sa);
 		
+		if_to_use.sin_addr.s_addr = INADDR_ANY;
+		if_to_use.sin_port = htons(0);
+		if_to_use.sin_family = AF_INET;
+
+		if_to_use_act = &if_to_use;
 
 		if (sendGETtoDest(if_to_use_act)) {
 			getsockname(sockfd_VideoServer,(struct sockaddr *) &sa, &sa_len);
