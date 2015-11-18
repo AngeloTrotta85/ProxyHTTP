@@ -43,7 +43,7 @@ public:
    static void manageTransferFromDestToClient(struct sockaddr_in *if_used, RequestManager rm, int sockfd_VideoServer, int socketfd_VideoClient, VideoInfo* videoInfo);
    static void manageTransferOnStatUpdate(struct sockaddr_in *if_used, int sockfd_VideoServer);
    static bool getVideoFrame(const char* GET, RequestManager rm, struct sockaddr_in *if_used, int &localServerSocket);
-   static void sendToClientFromFile(int clientSocket, const char* file);
+   static bool sendToClientFromFile(int clientSocket, const char* file);
    static void forkAndDownloadFrame(int frameNumber);
    static void customGetRequest(int frameNumber,RequestManager rm, char *customGET);
    static void settingsManifestParams(char *mName,VideoInfo videoInfo);

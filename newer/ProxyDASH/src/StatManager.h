@@ -51,6 +51,9 @@ public:
 		struct timeval  end_request_timeval;
 		bool reply_ok;
 		bool isMS4;
+		bool isCustom;
+		char algo;
+		int mode;
 	} stat_elements_t;
 
 private:

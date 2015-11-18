@@ -41,6 +41,7 @@ public:
    pthread_cond_t cond;
 
 private:
+	char qualChar[20]; //TEMP
    int counter = 0;
    int new_sockfd_VideoClient = -1;
    int sockfd_VideoServer = -1;
@@ -81,7 +82,7 @@ public:
 private:
    void useInterface(struct sockaddr_in *addr_in);
    void customFrameDownload(struct sockaddr_in *addr_in);
-   int selectFrame(long thr);
+   int selectFrame(long thr, long mainThr);
    void generateRandomFileName(int n, char* name);
    void checkUsedInterfaces(void);
 

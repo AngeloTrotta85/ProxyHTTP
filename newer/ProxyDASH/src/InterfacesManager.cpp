@@ -194,10 +194,10 @@ void InterfacesManager::updateInterfaceStats (struct sockaddr_in *if_used, int p
 		//get semaphore
 		sem_wait(sem_estimator);
 
-		debug_medium("InterfaceManager: size: %d time: %lld  %s  ", pktSize, time_usec, inet_ntoa(if_used->sin_addr));
+		/*debug_medium("InterfaceManager: size: %d time: %lld  %s  ", pktSize, time_usec, inet_ntoa(if_used->sin_addr));
 		debug_medium ("%lf ", (((double) pktSize)  /
 									((double) time_usec)) * (1000000.0 / 1024.0));
-		debug_medium("\n");
+		debug_medium("\n");*/
 		for (u_int32_t j = 0; j < interfaces_map_vector_size; j++) {
 
 			if (interfaces_map[j].addr_info == if_used->sin_addr.s_addr){
@@ -391,7 +391,7 @@ void InterfacesManager::chooseIF(struct sockaddr_in &if_to_use, std::list<struct
 			debug_medium("IF: %s %s - ", if_thr_vector[if_idx].if_name, inet_ntoa(if_thr_vector[if_idx].addr_info));
 			for (int i = 0; i < (int)if_thr_vector[if_idx].block_vector.size(); i++) {
 				//printf ("%d ", glob_var[idx_if][vec_type][i]);
-				debug_medium ("%.2lf[%.2lf] ", if_thr_vector[if_idx].block_vector[i].mean,  if_thr_vector[if_idx].block_vector[i].standard_dev );
+				//debug_medium ("%.2lf[%.2lf] ", if_thr_vector[if_idx].block_vector[i].mean,  if_thr_vector[if_idx].block_vector[i].standard_dev );
 			}
 			/*debug_medium ("- P_std: %lf.2 - P_mean: %lf.2 - Filled: %d\n",
 					if_thr_vector[if_idx].p_standardDev,
@@ -504,7 +504,7 @@ void InterfacesManager::setUsed(in_addr_t addr_info) {
 void InterfacesManager::setFree(in_addr_t addr_info) {
 
 	//get semaphor
-	printf("THREAD:: Aspetto il sem per setFree");
+	//printf("THREAD:: Aspetto il sem per setFree");
 	fflush(stdout);
 	//sem_wait(sem_estimator);
 	printf("THREAD:: acquisito il sem per setFree");
@@ -517,7 +517,7 @@ void InterfacesManager::setFree(in_addr_t addr_info) {
 	}
 	//release semaphore
 	//sem_post(sem_estimator);
-	printf("THREAD:: rilasciato il sem per setFree");
+	//printf("THREAD:: rilasciato il sem per setFree");
 	fflush(stdout);
 }
 void InterfacesManager::chooseIFMain(struct sockaddr_in &if_to_use_main, std::list<struct sockaddr_in> &if_to_use){
@@ -636,11 +636,11 @@ void InterfacesManager::chooseIFMain(struct sockaddr_in &if_to_use_main, std::li
 		if (if_thr_vector[if_idx].expected_thr < 0) {
 			if_thr_vector[if_idx].expected_thr = 0;
 		}
-		printf("THREAD:: InterfaceManager check best interface %s expectedTHR: %.2lf %.2lf %.2lf \n",
+		/*printf("THREAD:: InterfaceManager check best interface %s expectedTHR:  %.2lf \n",
 				inet_ntoa(toADD.sin_addr),
 				if_thr_vector[if_idx].p_mean,
 				if_thr_vector[if_idx].p_standardDev,
-				if_thr_vector[if_idx].expected_thr);
+				if_thr_vector[if_idx].expected_thr);*/
 	}
 
 	// calculate the best interface

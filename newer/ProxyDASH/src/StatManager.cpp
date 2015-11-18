@@ -21,7 +21,7 @@ void StatManager::makeStat() {
 
 	if ((actual_stats.isMS4) && (strlen(stat_file_name) > 0)) {
 
-		sem_wait(sem_file_stat);
+		//sem_wait(sem_file_stat);
 
 		if(actual_stats.frag_number <= START_FRAGMENT) {
 			gettimeofday(t0, NULL);
@@ -34,8 +34,8 @@ void StatManager::makeStat() {
 		//snprintf(buff_stat, sizeof(buff_stat), "%s-%d_%d", experiment_name, getppid(), getpid());
 		//snprintf(buff_stat, sizeof(buff_stat), "%s-%s_%dsec_%d",
 		//experiment_name, frag->video_name, frag->frag_seconds, getpid());
-		snprintf(buff_stat, sizeof(buff_stat), "%s-%s_%dsec",
-				stat_file_name, actual_stats.video_name, actual_stats.frag_seconds);
+		snprintf(buff_stat, sizeof(buff_stat), "%s-%s_%dsec_%s",
+				stat_file_name, actual_stats.video_name, actual_stats.frag_seconds, inet_ntoa(actual_stats.choosed_interface) );
 
 		fileExp = fopen(buff_stat, "a");
 		if (fileExp) {
@@ -92,7 +92,7 @@ void StatManager::makeStat() {
 			//		buffer_s, frag->start_request_timeval.tv_usec,
 			//		buffer_e, frag->end_request_timeval.tv_usec,
 			//		useconds, throughput);
-			int nw = snprintf(buff_stat, sizeof(buff_stat), "%s\t%d\t%d\t%d\t%d\t%s\t%d\t%lld\t%lld\t%lld\t%f\t%d\n",
+			int nw = snprintf(buff_stat, sizeof(buff_stat), "%s\t%d\t%d\t%d\t%d\t%s\t%d\t%lld\t%lld\t%lld\t%f\t%d\t%d\t%c\t%d\n",
 							actual_stats.video_name,
 							actual_stats.bps,
 							actual_stats.reply_ok ? 1 : 0,
@@ -104,14 +104,18 @@ void StatManager::makeStat() {
 							useconds_et,
 							useconds,
 							throughput,
-							buff_size);
+							buff_size,
+							actual_stats.isCustom ? 1 : 0,
+							actual_stats.algo,
+							actual_stats.mode
+							);
 
 			fwrite(buff_stat, 1, nw, fileExp);
 
 			fclose(fileExp);
 		}
 
-		sem_post(sem_file_stat);
+		//sem_post(sem_file_stat);
 	}
 }
 
@@ -179,7 +183,8 @@ void StatManager::fillFragmentField(const char *path) {
 			if (	(strncmp(tmp_path, "BigBuckBunny", 12) == 0) ||
 					(strncmp(tmp_path, "ElephantsDream", 14) == 0) ||
 					(strncmp(tmp_path, "OfForestAndMen", 14) == 0) ||
-					(strncmp(tmp_path, "TheSwissAccount", 15) == 0) ) {
+					(strncmp(tmp_path, "TheSwissAccount", 15) == 0) ||
+					(strncmp(tmp_path, "TearsOfSteel", 12) == 0)) {
 				//	TYPE_BIGBUNNY	0 		-- BigBuckBunny/1sec/bunny_46980bps/BigBuckBunny_1s3.m4s
 				snprintf(tmp_buff, sizeof(tmp_buff), "%s", ptr);
 				ptr_tmp = strchr (tmp_buff, '_');

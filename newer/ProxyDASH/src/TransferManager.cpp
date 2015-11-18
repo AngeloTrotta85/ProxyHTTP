@@ -109,7 +109,7 @@ bool TransferManager::sendGETtoDest(RequestManager rm,int &sockfd_VideoServer, s
  			len_inet = sizeof adr_inet;
  			getsockname(sockfd_VideoServer, (struct sockaddr *)&adr_inet, &len_inet);
 
- 			printf("CHILD:: connected to serve use %s:%d \n", inet_ntoa(adr_inet.sin_addr), adr_inet.sin_port);
+ 			//printf("CHILD:: connected to serve use %s:%d \n", inet_ntoa(adr_inet.sin_addr), adr_inet.sin_port);
  			fflush(stdout);
 
             int n_send = send(sockfd_VideoServer, rm.getCopyOfGET(), strlen(rm.getCopyOfGET()), 0);
@@ -117,7 +117,7 @@ bool TransferManager::sendGETtoDest(RequestManager rm,int &sockfd_VideoServer, s
                perror("Error writing to server socket");
                return false;
             }else{
-     			printf("CHILD:: send to serve use %s inviati: %d \n", inet_ntoa(adr_inet.sin_addr), n_send);
+     			//printf("CHILD:: send to serve use %s inviati: %d \n", inet_ntoa(adr_inet.sin_addr), n_send);
      			fflush(stdout);
             }
          }
@@ -218,11 +218,13 @@ void TransferManager::manageTransferFromDestToClient(struct sockaddr_in *if_used
       TransferManager::settingsManifestParams(mName, videoInfo);
    }
    if(rm.isMPEGDASH_M4S()){
+	   StatManager::getInstance().actual_stats.isCustom = false;
+	   StatManager::getInstance().actual_stats.mode = 3;
 	   printf("CHILD:: creo le stat \n");
-	   /*StatManager::getInstance().actual_stats.frag_bytesize = n_tot_recv;
+	   StatManager::getInstance().actual_stats.frag_bytesize = n_tot_recv;
 	   time(&StatManager::getInstance().actual_stats.end_request_time);
 	   gettimeofday(&StatManager::getInstance().actual_stats.end_request_timeval, NULL);
-	   StatManager::getInstance().makeStat();*/
+	   StatManager::getInstance().makeStat();
 	   printf("CHILD:: finito stat \n");
 
    }
@@ -259,7 +261,8 @@ void TransferManager::settingsManifestParams(char *mName,VideoInfo *videoInfo){
 bool TransferManager::getVideoFrame(const char* GET, RequestManager rm, struct sockaddr_in *if_used, int &localServerSocket){
 
    struct sockaddr_in host_addr;
-   //Random Port???
+
+   //Server addr
    host_addr.sin_port = htons(80);
    host_addr.sin_family=AF_INET;
    host_addr.sin_addr.s_addr = rm.getServerAddr();
@@ -312,6 +315,8 @@ bool TransferManager::getVideoFrame(const char* GET, RequestManager rm, struct s
          return false;
       }
    }
+   time(&StatManager::getInstance().actual_stats.start_request_time);
+   gettimeofday(&(StatManager::getInstance().actual_stats.start_request_timeval), NULL);
    return true;
 }
 
@@ -362,6 +367,15 @@ void TransferManager::manageTransferFromDest(int localServerSocket, char* filena
 
    } while (n_recv > 0);
    fclose(pFile);
+
+   // STAT
+   StatManager::getInstance().actual_stats.isCustom = true;
+   StatManager::getInstance().actual_stats.mode = 1;
+   StatManager::getInstance().actual_stats.reply_ok = true;
+   StatManager::getInstance().actual_stats.frag_bytesize = n_tot_recv;
+   time(&StatManager::getInstance().actual_stats.end_request_time);
+   gettimeofday(&StatManager::getInstance().actual_stats.end_request_timeval, NULL);
+   StatManager::getInstance().makeStat();
 }
 /*----------END Download From server custom Frame -----------*/
 
@@ -410,11 +424,15 @@ void TransferManager::manageTransferOnStatUpdate(struct sockaddr_in *if_used, in
    }
 }
 
-void TransferManager::sendToClientFromFile(int clientSocket, const char* file){
+bool TransferManager::sendToClientFromFile(int clientSocket, const char* file){
 
    char* localBuffer;
    int fsize = 0;
    FILE * pFile = NULL;
+
+   //Start STAT
+   time(&StatManager::getInstance().actual_stats.start_request_time);
+   gettimeofday(&(StatManager::getInstance().actual_stats.start_request_timeval), NULL);
 
    //printf("CUSTOM CHILD:: Mando al client dal file %s \n", file);
    fflush(stdout);
@@ -424,7 +442,7 @@ void TransferManager::sendToClientFromFile(int clientSocket, const char* file){
    if (pFile == NULL)
    {
        printf("CHILD:: File not found!\n");
-       return ;
+       return false;
    }
    else
    {
@@ -448,7 +466,9 @@ void TransferManager::sendToClientFromFile(int clientSocket, const char* file){
        if (bytes_read < 0)
        {
            perror("ERROR reading from file");
-       }
+       }else
+    	   StatManager::getInstance().actual_stats.frag_bytesize = bytes_read;
+
 
        char *p = localBuffer;
        while (bytes_read > 0)
@@ -466,6 +486,15 @@ void TransferManager::sendToClientFromFile(int clientSocket, const char* file){
    printf("CHILD:: Done Sending frame from File!\n");
 
    fclose(pFile);
-   return ;
+
+   // End STAT
+   StatManager::getInstance().actual_stats.isCustom = true;
+   StatManager::getInstance().actual_stats.mode = 2;
+   StatManager::getInstance().actual_stats.reply_ok = true;
+   printf("CHILD:: creo le stat \n");
+   time(&StatManager::getInstance().actual_stats.end_request_time);
+   gettimeofday(&StatManager::getInstance().actual_stats.end_request_timeval, NULL);
+   StatManager::getInstance().makeStat();
+   return true;
 
 }

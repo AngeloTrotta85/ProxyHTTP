@@ -170,11 +170,20 @@ int VideoManager::forkAndManage(){
 
 			//printf("CHILD %d::  Best interface is %s\n", counter, inet_ntoa(if_main.sin_addr));
 			printf("CHILD %d::  Il pacchetto %d e' gia stato scaricato? %s\n", counter, number, isDownloaded ? "true" : "false");
+		    StatManager::getInstance().actual_stats.algo = algo;
 
 			if(isDownloaded && !rm.isInit()){  //Manage already downloaded Segment
-
+			   // Set STAT
+			   StatManager::getInstance().actual_stats.isMS4 = true;
+			   StatManager::getInstance().actual_stats.choosed_interface.s_addr = if_main.sin_addr.s_addr;
+			   StatManager::getInstance().actual_stats.reply_ok = false;
+			   StatManager::getInstance().fillFragmentField(rm.getPathName());
 				//std::string *fileLocalName = videoInfo.getSegmentFile(number);
-				TransferManager::sendToClientFromFile(new_sockfd_VideoClient, videoInfo.frameArray[number].file->c_str());
+			   if(!TransferManager::sendToClientFromFile(new_sockfd_VideoClient, videoInfo.frameArray[number].file->c_str())){
+				   //File not found, download from server
+				   if (!TransferManager::manageRequest(rm, &if_main, new_sockfd_VideoClient, NULL,  counter))
+					   perror("Error managing request from client");
+			   }
 
 			}else if (!TransferManager::manageRequest(rm, &if_main, new_sockfd_VideoClient, NULL,  counter)) {
 				perror("Error managing request from client");
@@ -226,16 +235,16 @@ void VideoManager::checkInterfaceStatus(){
 void VideoManager::useInterface(struct sockaddr_in *addr_in){
 
 	InterfacesManager::getInstance().setUsed(addr_in->sin_addr.s_addr);
-	printf("THREAD:: Interface set used \n");
+	//printf("THREAD:: Interface set used \n");
 	customFrameDownload(addr_in);
-	printf("THREAD:: Create custom child \n");
+	//printf("THREAD:: Create custom child \n");
 
 }
 
 void VideoManager::customFrameDownload(struct sockaddr_in *addr_in){
 
 	char filename[256];
-	int frameNumber = selectFrame(InterfacesManager::getInstance().getExpectedThr(addr_in->sin_addr.s_addr));
+	int frameNumber = selectFrame(InterfacesManager::getInstance().getExpectedThr(addr_in->sin_addr.s_addr),InterfacesManager::getInstance().getExpectedThr(if_main.sin_addr.s_addr) );
 	generateRandomFileName(frameNumber, filename);
 
 	//printf("THREAD:: Trovata interfaccia libera: %s scelto numero random: %d \n", inet_ntoa(addr_in->sin_addr), frameNumber);
@@ -264,8 +273,18 @@ void VideoManager::customFrameDownload(struct sockaddr_in *addr_in){
 		char ptrGET[4096];
 		videoInfo.customGetRequest(frameNumber, rm, ptrGET, quality);
 
+
 		//printf("CUSTOM CHILD %d:: COPY OF GET \n%s\n", frameNumber, ptrGET);
 		//fflush(stdout);
+	    // Set STAT
+	    StatManager::getInstance().actual_stats.algo = algo;
+	    StatManager::getInstance().actual_stats.isMS4 = true;
+	    StatManager::getInstance().actual_stats.choosed_interface.s_addr = addr_in->sin_addr.s_addr;
+	    strcpy(StatManager::getInstance().actual_stats.video_name, videoInfo.getVideoName().c_str());
+	    StatManager::getInstance().actual_stats.bps = videoInfo.getLastReques_bps();
+	    StatManager::getInstance().actual_stats.frag_seconds = videoInfo.getSegmentDuration();
+	    StatManager::getInstance().actual_stats.frag_number = frameNumber;
+
 
 		int socketl = -1;
 		if(TransferManager::getVideoFrame(ptrGET, rm, addr_in, socketl)){
@@ -311,14 +330,15 @@ void VideoManager::generateRandomFileName(int n, char* name){
 		name[18] = 0;
 		test = std::string(name);
 	} while(exists(test));
-	printf("THREAD:: generato nome file  %s \n", name);
+	//printf("THREAD:: generato nome file  %s \n", name);
 	fflush(stdout);
 }
 
-int VideoManager::selectFrame(long thr){
+int VideoManager::selectFrame(long thr, long mainThr){
 
 	int to_ret = 0;
-
+	std::string tmp_s;
+	long qualLocal = 0;
 	switch (algo) {
 		case 'r':
 			to_ret = ChoiceAlgorithms::random(videoInfo.getLastRequest(), offset, videoInfo);
@@ -329,11 +349,26 @@ int VideoManager::selectFrame(long thr){
 		case 'c':
 			to_ret = ChoiceAlgorithms::caba(videoInfo, thr);
 			break;
+		case 's':
+			qualLocal = ChoiceAlgorithms::stepByStep(videoInfo, mainThr, thr);
+			if(videoInfo.frameArray[videoInfo.getLastRequest()].isDownloaded)
+				to_ret = videoInfo.getLastRequest() + 1;
+			else
+				to_ret = videoInfo.getLastRequest() + 2;
+			if(qualLocal > 0){
+				tmp_s = std::to_string(qualLocal);
+
+				strcpy(qualChar, tmp_s.c_str());
+				quality = qualChar;
+				printf("CABA QUALITY %s \n", tmp_s.c_str());
+				fflush(stdout);
+			}
+			break;
 		default:
 			to_ret = ChoiceAlgorithms::random(videoInfo.getLastRequest(), offset, videoInfo);
 
 	}
-	printf("THREAD:: scelto segmento numero %d \n", to_ret);
+	//printf("THREAD:: scelto segmento numero %d \n", to_ret);
 	fflush(stdout);
 	return to_ret;
 

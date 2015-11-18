@@ -91,6 +91,7 @@ all: directories ProxyDASH
 
 directories:
 	mkdir -p build
+	mkdir -p tempf
 
 # Tool invocations
 ProxyDASH: $(OBJS) $(USER_OBJS)
@@ -104,4 +105,5 @@ ProxyDASH: $(OBJS) $(USER_OBJS)
 clean:
 	-$(RM) $(C++_DEPS)$(OBJS)$(C_DEPS)$(CC_DEPS)$(CPP_DEPS)$(EXECUTABLES)$(CXX_DEPS)$(C_UPPER_DEPS) ProxyDASH
 	rm -rf build
+	rm -rf tempf
 	-@echo ' '
