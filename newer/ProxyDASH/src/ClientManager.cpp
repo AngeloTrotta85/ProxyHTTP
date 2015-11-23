@@ -165,6 +165,7 @@ bool ClientManager::getRequestFromClient(void) {
 	else {
 		// parsing the GET
 		printf("Befor load req \n");
+		printf("%s \n", buffer);
 		fflush(stdout);
 		if (!rm.load_req(buffer, nrcv)) {
 			printf("After load req \n");

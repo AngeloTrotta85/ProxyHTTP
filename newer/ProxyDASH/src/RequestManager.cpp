@@ -74,8 +74,9 @@ bool RequestManager::load_req(char *str_req, int size_str) {
 		while ((end_row = strstr(start_row, "\r\n")) != NULL) {
 			int row_len = end_row - start_row;
 
-			//printf("STRING TO PARSE: %s\n", std::string(start_row, row_len).c_str());
-
+			printf("STRING TO PARSE %d: %s\n",row_len, std::string(start_row, row_len).c_str());
+			fflush(stdout);
+			if(row_len == 0 ) break;
 			if (strncmp(start_row, "GET ", 4) == 0) {
 
 				req_fields[std::string("GET")] = std::string(start_row, 4, row_len - 4);
@@ -151,6 +152,8 @@ bool RequestManager::load_req(char *str_req, int size_str) {
 			start_row = end_row + 2;
 			if ((start_row - buff_req) >= size_str) break;	// I'm at the end but (maybe) I didn't realize it
 		}
+		printf("CHECK MPHDASH: %s\n", path_name);
+		fflush(stdout);
 		// check if it is an MPEG-DASH packet
 		int path_len = strlen(path_name);
 		if (path_len > 0) {
@@ -164,11 +167,22 @@ bool RequestManager::load_req(char *str_req, int size_str) {
 				mpeg_dash = MPEGDASH_INIT;
 			}
 		}
-
+		printf("CHECK HOSTNAME: %s\n", host_name);
+		fflush(stdout);
 		if (strlen(host_name) > 0) {
 			struct hostent* host = gethostbyname(host_name); // get host informations
+			if(host == NULL){
+				printf("CHECK HOSTNAME: NULL HOST \n");
+				fflush(stdout);
+				//bcopy((char*)host->h_addr, (char*)&server_addr, host->h_length);
+				//inet_aton("dfsff", server_addr);
+				server_addr = inet_addr("2.228.46.114");
+			}else{
+				printf("CHECK HOSTNAME2: %s\n", host->h_addr);
+				fflush(stdout);
+				bcopy((char*)host->h_addr, (char*)&server_addr, host->h_length);
+			}
 
-			bcopy((char*)host->h_addr, (char*)&server_addr, host->h_length);
 		}
 
 
