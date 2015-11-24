@@ -133,7 +133,7 @@ int main(int argc, char* argv[]) {
 	for (file_final_list_it = file_final_list.begin(); file_final_list_it != file_final_list.end(); file_final_list_it++) {
 		std::string act_file = *file_final_list_it;
 		inputFile = fopen(act_file.c_str(), "r");
-
+		frag_list.clear();
 		printf ("%s\n", act_file.c_str());
 
 		if (inputFile) {
@@ -157,11 +157,11 @@ int main(int argc, char* argv[]) {
 
 					read_frag.reply_ok = dummy_ok > 0;
 
-					//printf("READ: %s\t%d\t%d\t%d\t%d\t%s\t%d\t%ld\t%ld\t%ld\t%lf\n",
-					//		read_frag.video_name, read_frag.bps, dummy_ok, read_frag.frag_seconds,
-					//		read_frag.frag_number, inet_ntoa(read_frag.choosed_interface), read_frag.frag_bytesize,
-					//		read_frag.start_request_time, read_frag.end_request_time,
-					//		read_frag.tot_useconds, read_frag.throughput);
+					/*printf("READ: %s\t%d\t%d\t%d\t%d\t%s\t%d\t%ld\t%ld\t%ld\t%lf\n",
+							read_frag.video_name, read_frag.bps, dummy_ok, read_frag.frag_seconds,
+							read_frag.frag_number, inet_ntoa(read_frag.choosed_interface), read_frag.frag_bytesize,
+							read_frag.start_request_time, read_frag.end_request_time,
+							read_frag.tot_useconds, read_frag.throughput);*/
 
 					frag_list.push_back(read_frag);
 				}
@@ -169,15 +169,12 @@ int main(int argc, char* argv[]) {
 					break;
 				}
 			} while(true);
-			
+			//return 1;
 			fclose(inputFile);
-			if( remove(act_file.c_str()) != 0 )
-				perror( "Error deleting file" );
-			else
-				puts( "File successfully deleted" );
+			remove(act_file.c_str());
 		}
 		else {
-			perror("Input file not found");
+			//perror("Input file not found");
 			//return EXIT_FAILURE;
 			continue;
 		}
@@ -222,25 +219,34 @@ int main(int argc, char* argv[]) {
 			duplicate_list.push_back(&(*frag_list_it_dup));
 			frag_list_it_dup++;
 
-			if(act_frag->mode != 1){
-				while ((frag_list_it_dup != frag_list.end()) && ((*frag_list_it_dup).frag_number == act_frag->frag_number) ) {
-					if((*frag_list_it_dup).mode != 1){
-						duplicate_list.push_back(&(*frag_list_it_dup));
-					}
-					frag_list_it_dup++;
-					frag_list_it++;
+
+			while ((frag_list_it_dup != frag_list.end()) && ((*frag_list_it_dup).frag_number == act_frag->frag_number) ) {
+				if((*frag_list_it_dup).mode != 2){
+					duplicate_list.push_back(&(*frag_list_it_dup));
 				}
+				frag_list_it_dup++;
+				frag_list_it++;
 			}
-			//printf ("Trovato %d con %d occorrenze\n", act_frag->frag_number, duplicate_list.size());
+			
+			printf ("Trovato %d con %d occorrenze\n", act_frag->frag_number, duplicate_list.size());
 
 			if(duplicate_list.size() > 1) {
 				fragment_in_t * maxBPS = NULL;
 				fragment_in_t * minTime = NULL;
+				int counter_1 = 0;
+				int counter_3 = 0;
 
 				for (list<fragment_in_t *>::iterator dup_it = duplicate_list.begin(); dup_it != duplicate_list.end(); dup_it++) {
 					fragment_in_t *act_dup = *dup_it;
 
-					if ((maxBPS == NULL) || (maxBPS->bps < act_dup->bps)) {
+					printf ("Occorrenza %d con %d \n", act_dup->bps, act_dup->mode);
+					fflush(stdout);
+					if(act_dup->mode == 2)
+						continue;
+					/*else if(act_dup->mode == 1){
+						frag_list_noDUP.push_back(*act_dup);
+					}*/
+					else if ((maxBPS == NULL) || (maxBPS->bps < act_dup->bps)) {
 						long long diff_from_start = act_dup->end_request_time - first_reply_req_time;
 						long long now_playing = act_dup->frag_seconds * act_dup->frag_number;
 
@@ -258,13 +264,18 @@ int main(int argc, char* argv[]) {
 					maxBPS = minTime;
 				}
 
-				frag_list_noDUP.push_back(*maxBPS);
+				if(maxBPS != NULL){
+					printf ("Trovato %d con %d occorrenze\n", maxBPS->frag_number, maxBPS->bps);
+					frag_list_noDUP.push_back(*maxBPS);
+				}
 			}
 			else {
 				frag_list_noDUP.push_back(*act_frag);
 			}
-		}
+			duplicate_list.clear();
 
+		}
+		
 		//for (frag_list_it = frag_list.begin(); frag_list_it != frag_list.end(); frag_list_it++) {
 		for (frag_list_it = frag_list_noDUP.begin(); frag_list_it != frag_list_noDUP.end(); frag_list_it++) {
 			fragment_in_t *act_frag = &(*frag_list_it);
@@ -383,8 +394,10 @@ int main(int argc, char* argv[]) {
 		if (stat_file) {
 			fclose (stat_file);
 		}
-
-		cout << "END!!!" << endl;
+		frag_list.clear();
+		frag_list_noDUP.clear();
+		//break;
+		//cout << "END!!!" << endl;
 	}
 	return EXIT_SUCCESS;
 }
