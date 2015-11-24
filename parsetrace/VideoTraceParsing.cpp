@@ -33,7 +33,7 @@ typedef struct fragment_in {
 	int buff;
 	double throughput;
 	bool reply_ok;
-	bool isCustom;
+	int isCustom;
 	char algo;
 	int mode;
 } fragment_in_t;
@@ -221,13 +221,16 @@ int main(int argc, char* argv[]) {
 
 			duplicate_list.push_back(&(*frag_list_it_dup));
 			frag_list_it_dup++;
-			while ((frag_list_it_dup != frag_list.end()) && ((*frag_list_it_dup).frag_number == act_frag->frag_number)) {
-				duplicate_list.push_back(&(*frag_list_it_dup));
 
-				frag_list_it_dup++;
-				frag_list_it++;
+			if(act_frag->mode != 1){
+				while ((frag_list_it_dup != frag_list.end()) && ((*frag_list_it_dup).frag_number == act_frag->frag_number) ) {
+					if((*frag_list_it_dup).mode != 1){
+						duplicate_list.push_back(&(*frag_list_it_dup));
+					}
+					frag_list_it_dup++;
+					frag_list_it++;
+				}
 			}
-
 			//printf ("Trovato %d con %d occorrenze\n", act_frag->frag_number, duplicate_list.size());
 
 			if(duplicate_list.size() > 1) {
@@ -311,14 +314,15 @@ int main(int argc, char* argv[]) {
 			time_video_tot_sec += act_frag->frag_seconds;
 
 			int n_big_buff = snprintf (big_buff, sizeof(big_buff),
-					"%lf\t%s\t%08d\t%d\t%d\t%d\t%s\t%d\t%d\t%lld\t%lld\t%lf\t%lld\t%lf\t%lf\t%lf\t%lf\n",
+					"%lf\t%s\t%08d\t%d\t%d\t%d\t%s\t%d\t%d\t%lld\t%lld\t%lf\t%lld\t%lf\t%lf\t%lf\t%lf\t%d\n",
 					((double) actual_time) / 1000000.0,
 					act_frag->video_name, act_frag->bps, act_frag->reply_ok, act_frag->frag_seconds,
 					act_frag->frag_number, inet_ntoa(act_frag->choosed_interface),
 					act_frag->frag_bytesize, act_frag->frag_bytesize * 8,
 					act_frag->start_request_time, act_frag->end_request_time, diff,
 					act_frag->tot_useconds, act_frag->throughput, act_frag->throughput * 8,
-					((double) actual_pause) / 1000000.0, buff_s);
+					((double) actual_pause) / 1000000.0, buff_s,
+					act_frag->mode);
 
 			//printf("%s", big_buff);
 
