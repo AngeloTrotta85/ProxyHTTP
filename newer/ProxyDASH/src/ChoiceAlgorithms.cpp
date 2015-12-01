@@ -41,13 +41,14 @@ int ChoiceAlgorithms::caba( VideoInfo& videoInfo, long thr){
 
 	long sizeSegment = ((videoInfo.getLastReques_bps() * videoInfo.getSegmentDuration())/ 8000) ;//KB
 	long expectedTime = sizeSegment/thr;
-	int segmentNumber = videoInfo.getLastRequest() + (expectedTime/videoInfo.getSegmentDuration());
+	//TODO: arrotondamento
+	int segmentNumber = videoInfo.getLastRequest() + ceil(expectedTime/videoInfo.getSegmentDuration());
 	printf("THREAD:: CABA algorithms    expected Time: %ld %ld %ld \n", expectedTime, thr, sizeSegment);
 
 	if(segmentNumber > videoInfo.getSegmentNumber())
 		return 0;
-
-	return segmentNumber;
+	
+	return segmentNumber + 2;
 }
 
 long ChoiceAlgorithms::stepByStep( VideoInfo& videoInfo, long thr_main, long thr){

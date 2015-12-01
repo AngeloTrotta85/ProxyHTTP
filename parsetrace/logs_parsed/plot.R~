@@ -1,0 +1,498 @@
+library(ggplot2)
+
+
+
+
+
+rbindCheck <- function(x,y) {
+	if(nrow(y) >= 200){
+		x <- rbind(x,y)
+	}
+	return (x)	
+	
+}
+args <- commandArgs(trailingOnly = TRUE)
+testNUM <- args[1]
+
+mycolnames <- c('time_start','Name','bps','received','sec','frag_num','interface','size_byte','size_bit','start_req_t','end_req_t','send_t_sec','unknown','throug_bytesec','throug_bitsec','pause','buff','mode')
+
+#CABA data
+#mydata_caba <- as.data.frame(read.table(paste('caba_ceil/',testNUM,'_3-BigBuckBunny_1sec_',sep=''),col.names=mycolnames))
+#mydata_caba <- head(as.data.frame(read.table('caba_ceil/test1_2-BigBuckBunny_1sec_',col.names=mycolnames)),270)
+#mydata_caba_2 <- as.data.frame(read.table('caba_ceil/test1_2-BigBuckBunny_2sec_',col.names=mycolnames))
+#mydata_caba_4 <- as.data.frame(read.table('caba_ceil/test1_1-BigBuckBunny_4sec_',col.names=mycolnames))
+#mydata_caba_6 <- as.data.frame(read.table('caba_ceil/test1_2-BigBuckBunny_6sec_',col.names=mycolnames))
+#mydata_caba_10 <- as.data.frame(read.table('caba_ceil/test1_2-BigBuckBunny_10sec_',col.names=mycolnames))
+#mydata_caba_15 <- as.data.frame(read.table('caba_ceil/test1_2-BigBuckBunny_15sec_',col.names=mycolnames))
+#mydata_caba_1071529 <- as.data.frame(read.table('caba/1071529/test1_1-BigBuckBunny_1sec_',col.names=mycolnames))
+#mydata_caba_2234145 <- as.data.frame(read.table('caba/2234145/test1_1-BigBuckBunny_1sec_',col.names=mycolnames))
+
+
+#CABA_FIXED data 
+#mydata_cabafixed <- as.data.frame(read.table('caba_fixed/test1_1-BigBuckBunny_1sec_',col.names=mycolnames))
+#mydata_cabafixed_2 <- as.data.frame(read.table('caba_fixed/2/test1_1-BigBuckBunny_1sec_',col.names=mycolnames))
+#mydata_cabafixed_4 <- as.data.frame(read.table('caba_fixed/4/test1_1-BigBuckBunny_1sec_',col.names=mycolnames))
+#mydata_cabafixed_6 <- as.data.frame(read.table('caba_fixed/6/test1_1-BigBuckBunny_1sec_',col.names=mycolnames))
+#mydata_cabafixed_8 <- as.data.frame(read.table('caba_fixed/8/test1_1-BigBuckBunny_1sec_',col.names=mycolnames))
+#mydata_cabafixed_10 <- as.data.frame(read.table('caba_fixed/10/test1_1-BigBuckBunny_1sec_',col.names=mycolnames))
+
+
+listf = list.files("../../newer/ProxyDASH/src/logs/caba_p_fixed/2/", pattern="test1_*")
+mydata_cabafixed_offset_2 <- as.data.frame(read.table(paste("../../newer/ProxyDASH/src/logs/caba_p_fixed/2/", listf[1], sep='')))
+for (k in 2:length(listf)){
+ mydata_cabafixed_offset_2 <-rbind(mydata_cabafixed_offset_2, as.data.frame(read.table(paste("../../newer/ProxyDASH/src/logs/caba_p_fixed/2/", listf[k], sep=''))))
+}
+
+
+listf = list.files("../../newer/ProxyDASH/src/logs/caba_p_fixed/4/", pattern="test1_*")
+mydata_cabafixed_offset_4 <- as.data.frame(read.table(paste("../../newer/ProxyDASH/src/logs/caba_p_fixed/4/", listf[1], sep='')))
+for (k in 2:length(listf)){
+ mydata_cabafixed_offset_4 <-rbind(mydata_cabafixed_offset_4, as.data.frame(read.table(paste("../../newer/ProxyDASH/src/logs/caba_p_fixed/4/", listf[k], sep=''))))
+}
+
+listf = list.files("../../newer/ProxyDASH/src/logs/caba_p_fixed/6/", pattern="test1_*")
+mydata_cabafixed_offset_6 <- as.data.frame(read.table(paste("../../newer/ProxyDASH/src/logs/caba_p_fixed/6/", listf[1], sep='')))
+for (k in 2:length(listf)){
+ mydata_cabafixed_offset_6 <-rbind(mydata_cabafixed_offset_6, as.data.frame(read.table(paste("../../newer/ProxyDASH/src/logs/caba_p_fixed/6/", listf[k], sep=''))))
+}
+
+listf = list.files("../../newer/ProxyDASH/src/logs/caba_p_fixed/8/", pattern="test1_*")
+mydata_cabafixed_offset_8 <- as.data.frame(read.table(paste("../../newer/ProxyDASH/src/logs/caba_p_fixed/8/", listf[1], sep='')))
+for (k in 2:length(listf)){
+ mydata_cabafixed_offset_8 <-rbind(mydata_cabafixed_offset_8, as.data.frame(read.table(paste("../../newer/ProxyDASH/src/logs/caba_p_fixed/8/", listf[k], sep=''))))
+}
+
+listf = list.files("../../newer/ProxyDASH/src/logs/caba_p_fixed/10/", pattern="test1_*")
+mydata_cabafixed_offset_10 <- as.data.frame(read.table(paste("../../newer/ProxyDASH/src/logs/caba_p_fixed/10/", listf[1], sep='')))
+for (k in 2:length(listf)){
+ mydata_cabafixed_offset_10 <-rbind(mydata_cabafixed_offset_10, as.data.frame(read.table(paste("../../newer/ProxyDASH/src/logs/caba_p_fixed/10/", listf[k], sep=''))))
+}
+
+listf = list.files("../../newer/ProxyDASH/src/logs_new/caba/", pattern="test1_*")
+listf
+mydata_caba_ratio <- as.data.frame(read.table(paste("../../newer/ProxyDASH/src/logs_new/caba/", listf[1], sep='')))
+for (k in 2:length(listf)){
+print(paste("../../newer/ProxyDASH/src/logs_new/caba/", listf[k], sep=''))
+ mydata_caba_ratio <- rbind(mydata_caba_ratio, as.data.frame(read.table(paste("../../newer/ProxyDASH/src/logs_new/caba/", listf[k], sep=''))))
+}
+
+listf = list.files("../../newer/ProxyDASH/src/logs/stepByStep/", pattern="test1_*")
+mydata_sbs_ratio <- as.data.frame(read.table(paste("../../newer/ProxyDASH/src/logs/stepByStep/", listf[1], sep='')))
+for (k in 2:length(listf)){
+ mydata_sbs_ratio <- rbind(mydata_sbs_ratio, as.data.frame(read.table(paste("../../newer/ProxyDASH/src/logs/stepByStep/", listf[k], sep=''))))
+}
+
+listf = list.files("../../newer/ProxyDASH/src/logs/caba_p_fixed/", pattern="test1_*")
+mydata_fixed_ratio <- as.data.frame(read.table(paste("../../newer/ProxyDASH/src/logs/caba_p_fixed/", listf[1], sep='')))
+for (k in 2:length(listf)){
+ mydata_fixed_ratio <- rbind(mydata_fixed_ratio, as.data.frame(read.table(paste("../../newer/ProxyDASH/src/logs/caba_p_fixed/", listf[k], sep=''))))
+}
+#mydata_cabafixed_2 <- as.data.frame(read.table('caba_fixed/2/test1_1-BigBuckBunny_1sec_',col.names=mycolnames))
+#mydata_cabafixed_4 <- as.data.frame(read.table('caba_fixed/4/test1_1-BigBuckBunny_1sec_',col.names=mycolnames))
+#mydata_cabafixed_6 <- as.data.frame(read.table('caba_fixed/6/test1_1-BigBuckBunny_1sec_',col.names=mycolnames))
+#mydata_cabafixed_8 <- as.data.frame(read.table('caba_fixed/8/test1_1-BigBuckBunny_1sec_',col.names=mycolnames))
+#mydata_cabafixed_10 <- as.data.frame(read.table('caba_fixed/10/test1_1-BigBuckBunny_1sec_',col.names=mycolnames))
+
+#CABA_RANDOM data 
+#mydata_cabarandom <- as.data.frame(read.table('caba_random/test1_1-BigBuckBunny_1sec_',col.names=mycolnames))
+#mydata_cabarandom_2 <- as.data.frame(read.table('caba_random/2/test1_1-BigBuckBunny_1sec_',col.names=mycolnames))
+#mydata_cabarandom_4 <- as.data.frame(read.table('caba_random/4/test1_1-BigBuckBunny_1sec_',col.names=mycolnames))
+#mydata_cabarandom_6 <- as.data.frame(read.table('caba_random/6/test1_1-BigBuckBunny_1sec_',col.names=mycolnames))
+#mydata_cabarandom_8 <- as.data.frame(read.table('caba_random/8/test1_1-BigBuckBunny_1sec_',col.names=mycolnames))
+#mydata_cabarandom_10 <- as.data.frame(read.table('caba_random/10/test1_1-BigBuckBunny_1sec_',col.names=mycolnames))
+
+#SBS
+#mydata_sbs <- as.data.frame(read.table('stepbystep/test1_1-BigBuckBunny_1sec_',col.names=mycolnames))
+
+#WIFI
+#mydata_wifi <- as.data.frame(read.table('wifi/test1_1-BigBuckBunny_1sec_',col.names=mycolnames))
+
+#TWVS
+#mydata_tvws <- as.data.frame(read.table('tvws/test1_1-BigBuckBunny_1sec_',col.names=mycolnames))
+
+#CABA INIT
+mydata_caba <- data.frame(matrix(ncol = 18, nrow = 0))
+colnames(mydata_caba) <- mycolnames
+mydata_caba_2 <- data.frame(matrix(ncol = 18, nrow = 0))
+colnames(mydata_caba_2) <- mycolnames
+mydata_caba_4 <- data.frame(matrix(ncol = 18, nrow = 0))
+colnames(mydata_caba_4) <- mycolnames
+mydata_caba_6 <- data.frame(matrix(ncol = 18, nrow = 0))
+colnames(mydata_caba_6) <- mycolnames
+mydata_caba_10 <- data.frame(matrix(ncol = 18, nrow = 0))
+colnames(mydata_caba_10) <- mycolnames
+mydata_caba_15 <- data.frame(matrix(ncol = 18, nrow = 0))
+colnames(mydata_caba_15) <- mycolnames
+mydata_caba_1071529 <- data.frame(matrix(ncol = 18, nrow = 0))
+colnames(mydata_caba_1071529) <- mycolnames
+mydata_caba_2234145 <- data.frame(matrix(ncol = 18, nrow = 0))
+colnames(mydata_caba_2234145) <- mycolnames
+
+#CABA FIXED INIT
+mydata_cabafixed <- data.frame(matrix(ncol = 18, nrow = 0))
+colnames(mydata_cabafixed) <- mycolnames
+mydata_cabafixed_2 <- data.frame(matrix(ncol = 18, nrow = 0))
+colnames(mydata_cabafixed_2) <- mycolnames
+mydata_cabafixed_4 <- data.frame(matrix(ncol = 18, nrow = 0))
+colnames(mydata_cabafixed_4) <- mycolnames
+mydata_cabafixed_6 <- data.frame(matrix(ncol = 18, nrow = 0))
+colnames(mydata_cabafixed_6) <- mycolnames
+mydata_cabafixed_8 <- data.frame(matrix(ncol = 18, nrow = 0))
+colnames(mydata_cabafixed_8) <- mycolnames
+mydata_cabafixed_10 <- data.frame(matrix(ncol = 18, nrow = 0))
+colnames(mydata_cabafixed_10) <- mycolnames
+
+#CABA RANDOM INIT
+mydata_cabarandom <- data.frame(matrix(ncol = 18, nrow = 0))
+colnames(mydata_cabarandom) <- mycolnames
+mydata_cabarandom_2 <- data.frame(matrix(ncol = 18, nrow = 0))
+colnames(mydata_cabarandom_2) <- mycolnames
+mydata_cabarandom_4 <- data.frame(matrix(ncol = 18, nrow = 0))
+colnames(mydata_cabarandom_4) <- mycolnames
+mydata_cabarandom_6 <- data.frame(matrix(ncol = 18, nrow = 0))
+colnames(mydata_cabarandom_6) <- mycolnames
+mydata_cabarandom_8 <- data.frame(matrix(ncol = 18, nrow = 0))
+colnames(mydata_cabarandom_8) <- mycolnames
+mydata_cabarandom_10 <- data.frame(matrix(ncol = 18, nrow = 0))
+colnames(mydata_cabarandom_10) <- mycolnames
+
+#SBS
+mydata_sbs <- data.frame(matrix(ncol = 18, nrow = 0))
+colnames(mydata_sbs) <- mycolnames
+#WIFI
+mydata_wifi <- data.frame(matrix(ncol = 18, nrow = 0))
+colnames(mydata_wifi) <- mycolnames
+#TVWS
+mydata_tvws <- data.frame(matrix(ncol = 18, nrow = 0))
+colnames(mydata_tvws) <- mycolnames
+
+
+
+for (i in 1:3) {
+	#CABA
+	mydatatmp_caba <- tail(head(as.data.frame(read.table(paste('caba_new/test1_',i,'-BigBuckBunny_1sec_',sep=""), col.names = mycolnames)), 270),210)
+	
+	mydatatmp_caba_2 <- head(as.data.frame(read.table(paste('caba_ceil/test1_',i,'-BigBuckBunny_2sec_',sep=""), col.names = mycolnames)), 270)
+	mydatatmp_caba_4 <- head(as.data.frame(read.table(paste('caba_ceil/test1_',i,'-BigBuckBunny_4sec_',sep=""), col.names = mycolnames)), 270)
+	mydatatmp_caba_6 <- head(as.data.frame(read.table(paste('caba_ceil/test1_',i,'-BigBuckBunny_6sec_',sep=""), col.names = mycolnames)), 270)
+	mydatatmp_caba_10 <- head(as.data.frame(read.table(paste('caba_ceil/test1_',i,'-BigBuckBunny_10sec_',sep=""), col.names = mycolnames)), 270)
+	mydatatmp_caba_15 <- head(as.data.frame(read.table(paste('caba_ceil/test1_',i,'-BigBuckBunny_15sec_',sep=""), col.names = mycolnames)), 270)
+	mydatatmp_caba_1071529 <- head(as.data.frame(read.table(paste('caba/1071529/test1_',i,'-BigBuckBunny_1sec_',sep=""),col.names = mycolnames)), 270)
+	mydatatmp_caba_2234145 <- head(as.data.frame(read.table(paste('caba/2234145/test1_',i,'-BigBuckBunny_1sec_',sep=""),col.names = mycolnames)), 270)
+	mydata_caba <- rbindCheck(mydata_caba,mydatatmp_caba)
+	mydata_caba_2 <- rbindCheck(mydata_caba_2,mydatatmp_caba)
+	mydata_caba_4 <- rbindCheck(mydata_caba_4,mydatatmp_caba)
+	mydata_caba_6 <- rbindCheck(mydata_caba_6,mydatatmp_caba)
+	mydata_caba_10 <- rbindCheck(mydata_caba_10,mydatatmp_caba)
+	mydata_caba_15 <- rbindCheck(mydata_caba_15,mydatatmp_caba)
+	mydata_caba_1071529 <- rbindCheck(mydata_caba_1071529,mydatatmp_caba_1071529)
+	mydata_caba_2234145 <- rbindCheck(mydata_caba,mydatatmp_caba_2234145)
+	mydata_caba
+	#FIXED
+	mydatatmp_cabafixed <- head(as.data.frame(read.table(paste('caba_fixed/test1_',i,'-BigBuckBunny_1sec_',sep=""),col.names = mycolnames)), 270)
+	mydatatmp_cabafixed_2 <- head(as.data.frame(read.table(paste('caba_fixed/2/test1_',i,'-BigBuckBunny_1sec_',sep=""),col.names = mycolnames)), 270)
+	mydatatmp_cabafixed_4 <- head(as.data.frame(read.table(paste('caba_fixed/4/test1_',i,'-BigBuckBunny_1sec_',sep=""),col.names = mycolnames)), 270)
+	mydatatmp_cabafixed_6 <- head(as.data.frame(read.table(paste('caba_fixed/6/test1_',i,'-BigBuckBunny_1sec_',sep=""),col.names = mycolnames)), 270)
+	mydatatmp_cabafixed_8 <- head(as.data.frame(read.table(paste('caba_fixed/8/test1_',i,'-BigBuckBunny_1sec_',sep=""),col.names = mycolnames)), 270)
+	mydatatmp_cabafixed_10 <- head(as.data.frame(read.table(paste('caba_fixed/10/test1_',i,'-BigBuckBunny_1sec_',sep=""),col.names = mycolnames)), 270)
+	mydata_cabafixed <- rbindCheck(mydata_cabafixed,mydatatmp_cabafixed)
+	mydata_cabafixed_2 <- rbindCheck(mydata_cabafixed_2,mydatatmp_cabafixed_2)
+	mydata_cabafixed_4 <- rbindCheck(mydata_cabafixed_4,mydatatmp_cabafixed_4)
+	mydata_cabafixed_6 <- rbindCheck(mydata_cabafixed_6,mydatatmp_cabafixed_6)
+	mydata_cabafixed_8 <- rbindCheck(mydata_cabafixed_8,mydatatmp_cabafixed_8)
+	mydata_cabafixed_10 <- rbindCheck(mydata_cabafixed_10,mydatatmp_cabafixed_10)
+
+	#RANDOM
+	mydatatmp_cabarandom <- head(as.data.frame(read.table(paste('caba_random/test1_',i,'-BigBuckBunny_1sec_',sep=""),col.names = mycolnames)), 270)
+	mydatatmp_cabarandom_2 <- head(as.data.frame(read.table(paste('caba_random/2/test1_',i,'-BigBuckBunny_1sec_',sep=""),col.names = mycolnames)), 270)
+	mydatatmp_cabarandom_4 <- head(as.data.frame(read.table(paste('caba_random/4/test1_',i,'-BigBuckBunny_1sec_',sep=""),col.names = mycolnames)), 270)
+	mydatatmp_cabarandom_6 <- head(as.data.frame(read.table(paste('caba_random/6/test1_',i,'-BigBuckBunny_1sec_',sep=""),col.names = mycolnames)), 270)
+	mydatatmp_cabarandom_8 <- head(as.data.frame(read.table(paste('caba_random/8/test1_',i,'-BigBuckBunny_1sec_',sep=""),col.names = mycolnames)), 270)
+	mydatatmp_cabarandom_10 <- head(as.data.frame(read.table(paste('caba_random/10/test1_',i,'-BigBuckBunny_1sec_',sep=""),col.names = mycolnames)), 270)
+	mydata_cabarandom <- rbindCheck(mydata_cabafixed,mydatatmp_cabafixed)
+	mydata_cabarandom_2 <- rbindCheck(mydata_cabarandom_2,mydatatmp_cabarandom_2)
+	mydata_cabarandom_4 <- rbindCheck(mydata_cabarandom_4,mydatatmp_cabarandom_4)
+	mydata_cabarandom_6 <- rbindCheck(mydata_cabarandom_6,mydatatmp_cabarandom_6)
+	mydata_cabarandom_8 <- rbindCheck(mydata_cabarandom_8,mydatatmp_cabarandom_8)
+	mydata_cabarandom_10 <- rbindCheck(mydata_cabarandom_10,mydatatmp_cabarandom_10)
+	
+	#SBS
+	mydatatmp_sbs <- tail(head(as.data.frame(read.table(paste('stepbystep/test1_',i,'-BigBuckBunny_1sec_',sep=""),col.names = mycolnames)), 270),210)
+	mydata_sbs <- rbindCheck(mydata_sbs,mydatatmp_sbs)
+	#WIFI
+	mydatatmp_wifi <- tail(head(as.data.frame(read.table(paste('wifi_new/test1_',i,'-BigBuckBunny_1sec_',sep=""),col.names = mycolnames)), 270),210)
+	mydata_wifi <- rbindCheck(mydata_wifi,mydatatmp_wifi)
+	#TVWS
+	mydatatmp_tvws <- tail(head(as.data.frame(read.table(paste('tvws_new/test1_',i,'-BigBuckBunny_1sec_',sep=""),col.names = mycolnames)), 270),210)
+	mydata_tvws <- rbindCheck(mydata_tvws,mydatatmp_tvws)
+
+
+}
+#CABA
+mydataf_caba <- aggregate(.~frag_num, data=mydata_caba, mean)
+mydataf_caba_2 <- aggregate(.~frag_num, data=mydata_caba_2, mean)
+mydataf_caba_4 <- aggregate(.~frag_num, data=mydata_caba_4, mean)
+mydataf_caba_6 <- aggregate(.~frag_num, data=mydata_caba_6, mean)
+mydataf_caba_10 <- aggregate(.~frag_num, data=mydata_caba_10, mean)
+mydataf_caba_15 <- aggregate(.~frag_num, data=mydata_caba_15, mean)
+
+mydataf_caba_107 <- aggregate(.~frag_num, data=mydata_caba_1071529, mean)
+mydataf_caba_223 <- aggregate(.~frag_num, data=mydata_caba_2234145, mean)
+
+#FIXED
+mydataf_cabafixed <- aggregate(.~frag_num, data=mydata_cabafixed, mean)
+mydataf_cabafixed_2 <- aggregate(.~frag_num, data=mydata_cabafixed_2, mean)
+mydataf_cabafixed_4 <- aggregate(.~frag_num, data=mydata_cabafixed_4, mean)
+mydataf_cabafixed_6 <- aggregate(.~frag_num, data=mydata_cabafixed_6, mean)
+mydataf_cabafixed_8 <- aggregate(.~frag_num, data=mydata_cabafixed_8, mean)
+mydataf_cabafixed_10 <- aggregate(.~frag_num, data=mydata_cabafixed_10, mean)
+
+
+mydataf_sbs <- aggregate(.~frag_num, data=mydata_sbs, mean)
+mydataf_wifi <- aggregate(.~frag_num, data=mydata_wifi, mean)
+mydataf_tvws <- aggregate(.~frag_num, data=mydata_tvws, mean)
+
+mydataf_caba['algo'] = 'caba'
+mydataf_caba_2['algo'] = 'caba'
+mydataf_caba_4['algo'] = 'caba'
+mydataf_caba_6['algo'] = 'caba'
+mydataf_caba_10['algo'] = 'caba'
+mydataf_caba_15['algo'] = 'caba'
+mydataf_caba_107['algo'] = 'caba'
+mydataf_caba_223['algo'] = 'caba'
+
+mydataf_cabafixed['algo'] = 'fixed'
+mydataf_cabafixed_2['algo'] = 'fixed'
+mydataf_cabafixed_4['algo'] = 'fixed'
+mydataf_cabafixed_6['algo'] = 'fixed'
+mydataf_cabafixed_8['algo'] = 'fixed'
+mydataf_cabafixed_10['algo'] = 'fixed'
+
+mydataf_sbs['algo'] = 'sbs'
+mydataf_wifi['algo'] = 'wifi'
+mydataf_tvws['algo'] = 'tvws'
+
+#1 GRAPH algorithms comparing
+ggg <- mydataf_caba
+ggg <- rbind(ggg,mydataf_cabafixed)
+ggg <- rbind(ggg,mydataf_sbs)
+ggg <- rbind(ggg,mydataf_wifi)
+ggg <- rbind(ggg,mydataf_tvws)
+
+summary(ggg)
+pdf(paste("algorithms_compare_",testNUM,".pdf",sep=""))
+d <- ggplot(data=ggg,aes(x=frag_num,y=bps,color=factor(algo)))
+d <- d + geom_line()
+d <- d + theme_bw()
+d <- d + scale_x_continuous(expand=c(0,0))
+d <- d + theme(legend.title=element_blank())
+d
+
+
+#2 GRAPH CABA with different segment size
+mydataf_cabatmp = mydataf_caba
+mydataf_cabatmp['segment_duration'] = 1
+gg <- mydataf_cabatmp
+mydataf_cabatmp = mydataf_caba_2
+mydataf_cabatmp['segment_duration'] = 2
+gg <- rbind(gg,mydataf_cabatmp)
+mydataf_cabatmp = mydataf_caba_4
+mydataf_cabatmp['segment_duration'] = 4
+gg <- rbind(gg,mydataf_cabatmp)
+mydataf_cabatmp = mydataf_caba_6
+mydataf_cabatmp['segment_duration'] = 6
+gg <- rbind(gg,mydataf_cabatmp)
+mydataf_cabatmp = mydataf_caba_10
+mydataf_cabatmp['segment_duration'] = 10
+gg <- rbind(gg,mydataf_cabatmp)
+mydataf_cabatmp = mydataf_caba_15
+mydataf_cabatmp['segment_duration'] = 15
+gg <- rbind(gg,mydataf_cabatmp)
+
+
+pdf("CABA_size.pdf")
+d <- ggplot(data=gg,aes(x=time_start,y=bps,color=factor(segment_duration)))
+d <- d + geom_line()
+d <- d + theme_bw()
+d <- d + scale_x_continuous(expand=c(0,0))
+d <- d + theme(legend.title=element_blank())
+d
+
+#3 GRAPH FIXED with different offset
+mydataf_tmp = mydataf_cabafixed
+mydataf_tmp['offset'] = 5
+gg <- mydataf_tmp
+
+mydataf_tmp = mydataf_cabafixed_2
+mydataf_tmp['offset'] = 2
+gg <- rbind(gg,mydataf_tmp)
+
+mydataf_tmp = mydataf_cabafixed_4
+mydataf_tmp['offset'] = 4
+gg <- rbind(gg,mydataf_tmp)
+mydataf_tmp = mydataf_cabafixed_6
+mydataf_tmp['offset'] = 6
+gg <- rbind(gg,mydataf_tmp)
+mydataf_tmp = mydataf_cabafixed_8
+mydataf_tmp['offset'] = 8
+gg <- rbind(gg,mydataf_tmp)
+
+
+
+pdf("FIXED_offset.pdf")
+d <- ggplot(data=gg,aes(x=frag_num,y=bps,color=factor(offset)))
+d <- d + geom_line()
+d <- d + theme_bw()
+d <- d + scale_x_continuous(expand=c(0,0))
+d <- d + theme(legend.title=element_blank())
+d
+
+
+#4 GRAPH qual means
+mydf_avg <- data.frame()
+df_tmp <- data.frame(bps=numeric,algo=character)
+as.numeric(colMeans(mydataf_cabafixed['bps'])['bps'] / 1024)
+
+print("CABA")
+df_tmp <- data.frame(bps=as.numeric(colMeans(mydataf_caba['bps'])['bps'] / 1024),algo="CABA")
+mydf_avg = df_tmp
+
+print("CABA FIXED")
+df_tmp <- data.frame(bps=as.numeric(colMeans(mydataf_cabafixed['bps'])['bps'] / 1024),algo="Fixed")
+mydf_avg = rbind(mydf_avg,df_tmp)
+mydf_avg
+
+print("STEP BY STEP")
+df_tmp <- data.frame(bps=as.numeric(colMeans(mydataf_sbs['bps'])['bps'] / 1024),algo="SBS")
+mydf_avg = rbind(mydf_avg,df_tmp)
+
+print("WIFI")
+df_tmp <- data.frame(bps=as.numeric(colMeans(mydataf_wifi['bps'])['bps'] / 1024),algo="WIFI")
+mydf_avg = rbind(mydf_avg,df_tmp)
+
+print("TVWS")
+df_tmp <- data.frame(bps=as.numeric(colMeans(mydataf_tvws['bps'])['bps'] / 1024),algo="TVWS")
+mydf_avg = rbind(mydf_avg,df_tmp)
+
+pdf("avgQual.pdf")
+d <- ggplot(data=as.data.frame(mydf_avg),aes(x=algo, y=bps,fill=factor(algo)))
+d <- d + geom_bar(binwidth = 1, drop = FALSE, right = TRUE,stat="identity")
+d <- d + theme_bw()
+d <- d + scale_y_continuous(limits=c(0,5000),expand=c(0,0))
+d
+
+# GRAPH ratio fixed
+mydataf_ratio <- data.frame()
+mydataf_ratio_tmp4 <- data.frame()
+mydataf_ratio_tmp6 <- data.frame()
+mydataf_ratio_tmp8 <- data.frame()
+mydataf_ratio_tmp10 <- data.frame()
+mydataf_ratio_cabatmp <- data.frame()
+
+tmp_table = table(mydata_cabafixed_offset_2['V15'])
+mydataf_ratio <- data.frame(offset='2',ratio=min(1,tmp_table[2] / tmp_table[1]))
+
+tmp_table = table(mydata_cabafixed_offset_4['V15'])
+mydataf_ratio_tmp4 <- data.frame(offset='4',ratio=min(1,tmp_table[2] / tmp_table[1]))
+
+tmp_table = table(mydata_cabafixed_offset_6['V15'])
+mydataf_ratio_tmp6 <- data.frame(offset='6',ratio=min(1,tmp_table[2] / tmp_table[1]))
+
+tmp_table = table(mydata_cabafixed_offset_8['V15'])
+mydataf_ratio_tmp8 <- data.frame(offset='8',ratio=min(1,tmp_table[2] / tmp_table[1]))
+
+tmp_table = table(mydata_cabafixed_offset_10['V15'])
+mydataf_ratio_tmp10 <- data.frame(offset='10',ratio=min(1,tmp_table[2] / tmp_table[1]))
+
+tmp_table = table(mydata_caba_ratio['V15'])
+mydataf_ratio_cabatmp <- data.frame(algo='CABA',ratio=(tmp_table[2] / tmp_table[1]))
+
+mydataf_ratio = rbind(mydataf_ratio,mydataf_ratio_tmp4)
+mydataf_ratio = rbind(mydataf_ratio,mydataf_ratio_tmp6)
+mydataf_ratio = rbind(mydataf_ratio,mydataf_ratio_tmp8)
+mydataf_ratio = rbind(mydataf_ratio,mydataf_ratio_tmp10)
+
+pdf('ratio_fixed.pdf')
+d <- ggplot(data=as.data.frame(mydataf_ratio),aes(x=offset, y=ratio,fill=factor(offset)))
+d <- d + geom_bar(binwidth = 1, drop = FALSE, right = TRUE,stat="identity")
+d <- d + theme_bw()
+d <- d + scale_y_continuous(limits=c(0,1),expand=c(0,0))
+d
+
+as.numeric(mydataf_ratio_cabatmp$ratio[0])
+as.numeric(mydataf_ratio_cabatmp$ratio[1])
+pdf('ratio_fixed_caba.pdf')
+d <- ggplot(data=as.data.frame(mydataf_ratio),aes(x=offset, y=ratio,fill=factor(offset)))
+d <- d + geom_bar(binwidth = 1, drop = FALSE, right = TRUE,stat="identity")
+d <- d + geom_hline(yintercept=as.numeric(mydataf_ratio_cabatmp$ratio[0]), color="red")
+d <- d + theme_bw()
+d <- d + scale_y_continuous(limits=c(0,1),expand=c(0,0))
+d
+
+# GRAPH ratio fixed
+mydataf_ratio <- data.frame()
+mydataf_ratio_tmp4 <- data.frame()
+mydataf_ratio_tmp6 <- data.frame()
+
+tmp_table = table(mydata_caba_ratio['V15'])
+mydataf_ratio <- data.frame(algo='CABA',ratio=(tmp_table[2] / tmp_table[1]))
+tmp_table
+tmp_table = table(mydata_sbs_ratio['V15'])
+mydataf_ratio_tmp4 <- data.frame(algo='SbS',ratio=(tmp_table[2] / tmp_table[1]))
+
+tmp_table = table(mydata_fixed_ratio['V15'])
+tmp_table[2]  
+tmp_table[1]
+mydataf_ratio_tmp6 <- data.frame(algo='FIXED',ratio=(tmp_table[2] / tmp_table[1]))
+
+mydataf_ratio = rbind(mydataf_ratio,mydataf_ratio_tmp4)
+mydataf_ratio = rbind(mydataf_ratio,mydataf_ratio_tmp6)
+
+mydataf_ratio
+
+pdf('ratio_all.pdf')
+d <- ggplot(data=as.data.frame(mydataf_ratio),aes(x=algo, y=ratio,fill=factor(algo)))
+d <- d + geom_bar(binwidth = 1, drop = FALSE, right = TRUE,stat="identity")
+d <- d + theme_bw()
+#d <- d + scale_y_continuous(limits=c(0,1),expand=c(0,0))
+d
+
+
+#4 GRAPH qual means
+mydataf_cabafixed_2['offset'] = 2
+mydataf_cabafixed_4['offset'] = 4
+mydataf_cabafixed['offset'] = 5
+mydataf_cabafixed_6['offset'] = 6
+mydataf_cabafixed_8['offset'] = 8
+mydataf_cabafixed_10['offset'] = 10
+
+df_tmp <- colMeans(mydataf_cabafixed_2['bps']) / 1024
+df_tmp['offset'] = 2
+mydf_avg_off = df_tmp
+
+df_tmp <- colMeans(mydataf_cabafixed_4['bps']) / 1024
+df_tmp['offset'] = 4
+mydf_avg_off = rbind(mydf_avg_off, df_tmp)
+
+df_tmp <- colMeans(mydataf_cabafixed['bps']) / 1024
+df_tmp['offset'] = 5
+mydf_avg_off = rbind(mydf_avg_off, df_tmp)
+
+df_tmp <- colMeans(mydataf_cabafixed_6['bps']) / 1024
+df_tmp['offset'] = 6
+mydf_avg_off = rbind(mydf_avg_off, df_tmp)
+
+df_tmp <- colMeans(mydataf_cabafixed_8['bps']) / 1024
+df_tmp['offset'] = 8
+mydf_avg_off = rbind(mydf_avg_off, df_tmp)
+
+df_tmp <- colMeans(mydataf_cabafixed_10['bps']) / 1024
+df_tmp['offset'] = 10
+mydf_avg_off = rbind(mydf_avg_off, df_tmp)
+
+#pdf("avgQualOffset.pdf")
+#d <- ggplot(data=as.data.frame(mydf_avg_off),aes(x=offset, y=bps,fill=factor(offset)))
+#d <- d + geom_bar(binwidth = 1, drop = FALSE, right = TRUE,stat="identity")
+#d <- d + theme_bw()
+#d
+

@@ -6,6 +6,20 @@ while [ "$PORT" -le 10000 ]
 do
   PORT=$RANDOM
 done
+	
+# SET
+DIR="logs/tvws"
+mkdir ${DIR}
+DIR="logs/wifi"
+mkdir ${DIR}
+DIR="logs/caba_p_random"
+mkdir ${DIR}
+DIR="logs/caba_p_fixed"
+mkdir ${DIR}
+DIR="logs/caba"
+mkdir ${DIR}
+DIR="logs/stepByStep"
+mkdir ${DIR}
 
 COMMAND="google-chrome"
 DIRECTORY="google-chrome"
@@ -19,28 +33,26 @@ sudo ./tc.sh set wlan0 250000
 #sudo ./tc.sh set wlan0 290000
 
 COUNTER=1
-for runs in 1 2 3 4 
+for runs in {1..20}
 do
-	#./script.py
+for test in {1..3}
+do
+	if [ $test -eq 1 ]
+	then
+		sudo ./tc.sh set eth0 55000
+		sudo ./tc.sh set wlan0 290000
+	elif [ $test -eq 2 ]
+	then
+		sudo ./tc.sh set eth0 55000
+		sudo ./tc.sh set wlan0 55000
+	else
+		sudo ./tc.sh set eth0 90000
+		sudo ./tc.sh set wlan0 250000
+	fi
+	sleep 5
 
-	echo "Clear iptables"
-	#sudo iptables -t nat -F
 
-	# SET
-	DIR="logs/tvws"
-	mkdir ${DIR}
-	DIR="logs/wifi"
-	mkdir ${DIR}
-	DIR="logs/caba_p_random"
-	mkdir ${DIR}
-	DIR="logs/caba_p_fixed"
-	mkdir ${DIR}
-	DIR="logs/caba"
-	mkdir ${DIR}
-	DIR="logs/stepByStep"
-	mkdir ${DIR}
-
-	LOGNAME="logs/tvws/test3_${runs}"
+	LOGNAME="logs/tvws/test${test}_${runs}"
 	rm -rf /home/$USER/.config/$DIRECTORY/Default
 	rm -rf /home/$USER/.cache/$DIRECTORY/
 
@@ -59,7 +71,7 @@ do
 
 	sleep 2
 
-	LOGNAME="logs/wifi/test3_${runs}"
+	LOGNAME="logs/wifi/test${test}_${runs}"
 	echo "$LOGNAME"
 	rm -rf /home/$USER/.config/$DIRECTORY/Default
 	rm -rf /home/$USER/.cache/$DIRECTORY/
@@ -80,7 +92,7 @@ do
 
 	sleep 2
 
-	LOGNAME="logs/caba_p_random/test3_${runs}"
+	LOGNAME="logs/caba_p_random/test${test}_${runs}"
 	echo "$LOGNAME"
 	rm -rf /home/$USER/.config/$DIRECTORY/Default
 	rm -rf /home/$USER/.cache/$DIRECTORY/
@@ -102,7 +114,7 @@ do
 
 	sleep 2
 
-	LOGNAME="logs/caba_p_fixed/test3_${runs}"
+	LOGNAME="logs/caba_p_fixed/test${test}_${runs}"
 	echo "$LOGNAME"
 	rm -rf /home/$USER/.config/$DIRECTORY/Default
 	rm -rf /home/$USER/.cache/$DIRECTORY/
@@ -124,7 +136,7 @@ do
 
 	sleep 2
 
-	LOGNAME="logs/caba/test3_${runs}"
+	LOGNAME="logs/caba/test${test}_${runs}"
 	echo "$LOGNAME"
 	rm -rf /home/$USER/.config/$DIRECTORY/Default
 	rm -rf /home/$USER/.cache/$DIRECTORY/
@@ -145,7 +157,7 @@ do
 
 
 
-	LOGNAME="logs/stepByStep/test3_${runs}"
+	LOGNAME="logs/stepByStep/test${test}_${runs}"
 	echo "$LOGNAME"
 	rm -rf /home/$USER/.config/$DIRECTORY/Default
 	rm -rf /home/$USER/.cache/$DIRECTORY/
@@ -165,6 +177,7 @@ do
 	kill -9 $PIDC && kill -9 $PIDP && sudo kill -9 $PIDT
 
 	
+done
 done
 sudo ./tc.sh clean eth0
 sudo ./tc.sh clean wlan0
